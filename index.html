@@ -4,21 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Career Superapp</title>
-    <!-- FingerprintJS for Device ID -->
+    
+    <!-- 1. Load FingerprintJS -->
     <script src="https://openfpcdn.io/fingerprintjs/v4"></script>
-    <!-- Google Identity Services -->
+    
+    <!-- 2. Define the callback function BEFORE Google loads -->
+    <script>
+        // We attach it to 'window' so Google can definitely see it
+        window.handleCredentialResponse = async function(response) {
+            const statusMsg = document.getElementById('statusMessage');
+            statusMsg.innerText = "Connecting to Secure Server...";
+            statusMsg.style.color = "blue";
+
+            try {
+                // Generate Device ID
+                const fp = await FingerprintJS.load();
+                const fpResult = await fp.get();
+                const deviceId = fpResult.visitorId;
+
+                // Decode Google JWT
+                const base64Url = response.credential.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const payload = JSON.parse(window.atob(base64));
+                const userEmail = payload.email;
+
+                // REPLACE THIS WITH YOUR NEW APPS SCRIPT URL
+                const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2jAFi51x6OYG-t8mND5oDJUQvAYiGoHNS6Ba8XrAJeSej8P7rOuWrgq-F8P_GvUue/exec";
+
+                const apiResponse = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'login',
+                        email: userEmail,
+                        deviceId: deviceId
+                    })
+                });
+
+                const result = await apiResponse.json();
+
+                if (result.success) {
+                    statusMsg.style.color = "green";
+                    statusMsg.innerText = "Login Successful! Welcome " + result.user.userId;
+                    localStorage.setItem('user', JSON.stringify(result.user));
+                } else {
+                    statusMsg.style.color = "red";
+                    statusMsg.innerText = result.message;
+                }
+
+            } catch (error) {
+                statusMsg.style.color = "red";
+                statusMsg.innerText = "Error: " + error.message;
+                console.error(error);
+            }
+        };
+    </script>
+
+    <!-- 3. Load Google Identity Services AFTER defining the callback -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; }
-        .login-card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
-        #statusMessage { margin-top: 1rem; color: #d9534f; font-weight: bold; }
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; margin: 0; }
+        .login-card { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 350px; }
+        #statusMessage { margin-top: 20px; font-size: 14px; min-height: 20px; }
     </style>
 </head>
 <body>
 
     <div class="login-card">
-        <h1>Welcome</h1>
-        <p>Please sign in to access your AI Career tools</p>
+        <h1>AI Career Pro</h1>
+        <p>Log in to your dashboard</p>
         
         <!-- Google Sign-In Button -->
         <div id="g_id_onload"
@@ -31,64 +85,5 @@
         <p id="statusMessage"></p>
     </div>
 
-    <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2jAFi51x6OYG-t8mND5oDJUQvAYiGoHNS6Ba8XrAJeSej8P7rOuWrgq-F8P_GvUue/exec";
-
-        async function handleCredentialResponse(response) {
-    const statusMsg = document.getElementById('statusMessage');
-    statusMsg.innerText = "Verifying device and identity...";
-    statusMsg.style.color = "blue";
-
-    try {
-        // 1. Generate Device ID
-        const fp = await FingerprintJS.load();
-        const fpResult = await fp.get();
-        const deviceId = fpResult.visitorId;
-
-        // 2. Decode Google JWT
-        const base64Url = response.credential.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const payload = JSON.parse(window.atob(base64));
-        const userEmail = payload.email;
-
-        // 3. Send to Google Sheets (Added 'follow' redirect logic)
-        const apiResponse = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors', // Try this if you get CORS errors
-            headers: { 'Content-Type': 'text/plain' }, // GAS prefers text/plain for CORS bypass
-            body: JSON.stringify({
-                action: 'login',
-                email: userEmail,
-                deviceId: deviceId
-            })
-        });
-
-        // Note: With 'no-cors', you won't be able to read the response. 
-        // If you want to read the response, use the version below:
-        
-        const apiResponseNormal = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'login',
-                email: userEmail,
-                deviceId: deviceId
-            })
-        });
-
-        const result = await apiResponseNormal.json();
-
-        if (result.success) {
-            statusMsg.style.color = "green";
-            statusMsg.innerText = "Success! Welcome " + result.user.userId;
-            localStorage.setItem('user', JSON.stringify(result.user));
-        } else {
-            statusMsg.style.color = "red";
-            statusMsg.innerText = result.message;
-        }
-
-    } catch (error) {
-        statusMsg.innerText = "Error: " + error.message;
-        console.error(error);
-    }
-}
-<!-- refresh -->
+</body>
+</html>
