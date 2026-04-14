@@ -35,49 +35,59 @@
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2jAFi51x6OYG-t8mND5oDJUQvAYiGoHNS6Ba8XrAJeSej8P7rOuWrgq-F8P_GvUue/exec";
 
         async function handleCredentialResponse(response) {
-            const statusMsg = document.getElementById('statusMessage');
-            statusMsg.innerText = "Verifying device and identity...";
+    const statusMsg = document.getElementById('statusMessage');
+    statusMsg.innerText = "Verifying device and identity...";
+    statusMsg.style.color = "blue";
 
-            try {
-                // 1. Generate Device ID (Fingerprint)
-                const fp = await FingerprintJS.load();
-                const fpResult = await fp.get();
-                const deviceId = fpResult.visitorId;
+    try {
+        // 1. Generate Device ID
+        const fp = await FingerprintJS.load();
+        const fpResult = await fp.get();
+        const deviceId = fpResult.visitorId;
 
-                // 2. Decode Google JWT Token to get Email
-                const payload = JSON.parse(atob(response.credential.split('.')[1]));
-                const userEmail = payload.email;
+        // 2. Decode Google JWT
+        const base64Url = response.credential.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(window.atob(base64));
+        const userEmail = payload.email;
 
-                // 3. Send to Google Sheets (Backend)
-                const apiResponse = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'login',
-                        email: userEmail,
-                        deviceId: deviceId
-                    })
-                });
+        // 3. Send to Google Sheets (Added 'follow' redirect logic)
+        const apiResponse = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Try this if you get CORS errors
+            headers: { 'Content-Type': 'text/plain' }, // GAS prefers text/plain for CORS bypass
+            body: JSON.stringify({
+                action: 'login',
+                email: userEmail,
+                deviceId: deviceId
+            })
+        });
 
-                const result = await apiResponse.json();
+        // Note: With 'no-cors', you won't be able to read the response. 
+        // If you want to read the response, use the version below:
+        
+        const apiResponseNormal = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'login',
+                email: userEmail,
+                deviceId: deviceId
+            })
+        });
 
-                if (result.success) {
-                    statusMsg.style.color = "green";
-                    statusMsg.innerText = "Success! Redirecting...";
-                    // Save user data to local storage and move to Dashboard
-                    localStorage.setItem('user', JSON.stringify(result.user));
-                    setTimeout(() => { 
-                        alert("Logged in as " + result.user.userId);
-                        // window.location.href = "dashboard.html"; 
-                    }, 1000);
-                } else {
-                    statusMsg.innerText = result.message;
-                }
+        const result = await apiResponseNormal.json();
 
-            } catch (error) {
-                statusMsg.innerText = "Connection error. Please try again.";
-                console.error(error);
-            }
+        if (result.success) {
+            statusMsg.style.color = "green";
+            statusMsg.innerText = "Success! Welcome " + result.user.userId;
+            localStorage.setItem('user', JSON.stringify(result.user));
+        } else {
+            statusMsg.style.color = "red";
+            statusMsg.innerText = result.message;
         }
-    </script>
-</body>
-</html>
+
+    } catch (error) {
+        statusMsg.innerText = "Error: " + error.message;
+        console.error(error);
+    }
+}
