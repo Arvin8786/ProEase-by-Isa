@@ -1,1 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Career Superapp</title>
+    <!-- FingerprintJS for Device ID -->
+    <script src="https://openfpcdn.io/fingerprintjs/v4"></script>
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; }
+        .login-card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
+        #statusMessage { margin-top: 1rem; color: #d9534f; font-weight: bold; }
+    </style>
+</head>
+<body>
 
+    <div class="login-card">
+        <h1>Welcome</h1>
+        <p>Please sign in to access your AI Career tools</p>
+        
+        <!-- Google Sign-In Button -->
+        <div id="g_id_onload"
+             data-client_id="883425754646-qdtov35q7ud513ed0ugame8042n46uof.apps.googleusercontent.com"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin" data-type="standard"></div>
+
+        <p id="statusMessage"></p>
+    </div>
+
+    <script>
+        const APPS_SCRIPT_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+        async function handleCredentialResponse(response) {
+            const statusMsg = document.getElementById('statusMessage');
+            statusMsg.innerText = "Verifying device and identity...";
+
+            try {
+                // 1. Generate Device ID (Fingerprint)
+                const fp = await FingerprintJS.load();
+                const fpResult = await fp.get();
+                const deviceId = fpResult.visitorId;
+
+                // 2. Decode Google JWT Token to get Email
+                const payload = JSON.parse(atob(response.credential.split('.')[1]));
+                const userEmail = payload.email;
+
+                // 3. Send to Google Sheets (Backend)
+                const apiResponse = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'login',
+                        email: userEmail,
+                        deviceId: deviceId
+                    })
+                });
+
+                const result = await apiResponse.json();
+
+                if (result.success) {
+                    statusMsg.style.color = "green";
+                    statusMsg.innerText = "Success! Redirecting...";
+                    // Save user data to local storage and move to Dashboard
+                    localStorage.setItem('user', JSON.stringify(result.user));
+                    setTimeout(() => { 
+                        alert("Logged in as " + result.user.userId);
+                        // window.location.href = "dashboard.html"; 
+                    }, 1000);
+                } else {
+                    statusMsg.innerText = result.message;
+                }
+
+            } catch (error) {
+                statusMsg.innerText = "Connection error. Please try again.";
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
