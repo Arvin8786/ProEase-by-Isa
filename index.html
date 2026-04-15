@@ -3,43 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Career Pro - Login</title>
+    <title>Career AI | Login</title>
     
-    <!-- Scripts -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
     
+    <style>
+        :root {
+            --primary: #6366f1; /* Modern Indigo */
+            --bg: #f8fafc;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at top right, #e0e7ff, transparent),
+                              radial-gradient(circle at bottom left, #f1f5f9, transparent);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-card {
+            background: white;
+            padding: 48px;
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            color: white;
+            font-size: 30px;
+            font-weight: bold;
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+        }
+
+        h1 {
+            font-size: 28px;
+            color: var(--text-main);
+            margin: 0 0 8px 0;
+            letter-spacing: -0.5px;
+        }
+
+        p {
+            color: var(--text-muted);
+            margin-bottom: 32px;
+            font-size: 16px;
+        }
+
+        #googleBtn {
+            display: flex;
+            justify-content: center;
+            transition: transform 0.2s ease;
+        }
+
+        #googleBtn:hover {
+            transform: translateY(-2px);
+        }
+
+        #statusMessage {
+            margin-top: 24px;
+            font-size: 14px;
+            min-height: 20px;
+            transition: all 0.3s ease;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .loading-dots:after {
+            content: ' .';
+            animation: dots 1s steps(5, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: ' .'; }
+            40% { content: ' ..'; }
+            60% { content: ' ...'; }
+            80%, 100% { content: ''; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="logo-icon">C</div>
+        <h1>Career AI Pro</h1>
+        <p>Elevate your career with AI</p>
+        
+        <div id="googleBtn"></div>
+
+        <div id="statusMessage"></div>
+    </div>
+
     <script>
-        // --- CONFIGURATION ---
         const CLIENT_ID = "883425754646-qdtov35q7ud513ed0ugame8042n46uof.apps.googleusercontent.com";
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxaJQig0k522qQZcADxVZZjWJTybSveNLgnh1NNGxWU0hjzGn9YlxBP-gXQBsGM3E8n/exec"; 
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxaJQig0k522qQZcADxVZZjWJTybSveNLgnh1NNGxWU0hjzGn9YlxBP-gXQBsGM3E8n/exec";
 
         async function handleCredentialResponse(response) {
             const statusMsg = document.getElementById('statusMessage');
-            statusMsg.innerText = "Processing Security Check...";
-            statusMsg.style.color = "blue";
+            statusMsg.innerHTML = '<span class="loading-dots">Verifying credentials</span>';
+            statusMsg.style.color = "#6366f1";
 
             try {
-                // 1. Get Fingerprint (Device ID)
                 const fpPromise = FingerprintJS.load();
                 const fp = await fpPromise;
                 const result = await fp.get();
                 const deviceId = result.visitorId;
 
-                // 2. Decode Google Email
                 const base64Url = response.credential.split('.')[1];
                 const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
                 const payload = JSON.parse(window.atob(base64));
-                const userEmail = payload.email;
 
-                statusMsg.innerText = "Connecting to Database...";
-
-                // 3. Send to Backend
                 const apiRes = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({
                         action: 'login',
-                        email: userEmail,
+                        email: payload.email,
                         deviceId: deviceId
                     })
                 });
@@ -47,25 +142,18 @@
                 const apiResult = await apiRes.json();
 
                 if (apiResult.success) {
-                    statusMsg.style.color = "green";
-                    statusMsg.innerText = "Success! Welcome " + apiResult.user.userId;
-                    
-                    // Save session
+                    statusMsg.style.background = "#ecfdf5";
+                    statusMsg.style.color = "#059669";
+                    statusMsg.innerText = "Access Granted. Redirecting...";
                     localStorage.setItem('user', JSON.stringify(apiResult.user));
-                    
-                    // Redirect to dashboard.html after 1.5 seconds
-                    setTimeout(() => {
-                        window.location.href = "dashboard.html";
-                    }, 1500);
+                    setTimeout(() => { window.location.href = "dashboard.html"; }, 1500);
                 } else {
-                    statusMsg.style.color = "red";
+                    statusMsg.style.background = "#fef2f2";
+                    statusMsg.style.color = "#dc2626";
                     statusMsg.innerText = apiResult.message;
                 }
-
             } catch (error) {
-                statusMsg.style.color = "red";
-                statusMsg.innerText = "System Error: " + error.message;
-                console.error(error);
+                statusMsg.innerText = "Connection failed. Please refresh.";
             }
         }
 
@@ -76,26 +164,9 @@
             });
             google.accounts.id.renderButton(
                 document.getElementById("googleBtn"),
-                { theme: "filled_blue", size: "large", width: "250", shape: "pill" }
+                { theme: "outline", size: "large", width: "300", shape: "pill", logo_alignment: "left" }
             );
         };
     </script>
-
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f4f8; margin: 0; }
-        .login-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; width: 340px; }
-        h1 { margin: 0 0 10px 0; color: #2d3436; }
-        p { color: #636e72; font-size: 14px; margin-bottom: 30px; }
-        #googleBtn { display: flex; justify-content: center; }
-        #statusMessage { margin-top: 25px; font-size: 13px; font-weight: bold; min-height: 20px; }
-    </style>
-</head>
-<body>
-    <div class="login-card">
-        <h1>Career AI</h1>
-        <p>Unlock your AI-powered career tools</p>
-        <div id="googleBtn"></div>
-        <p id="statusMessage"></p>
-    </div>
 </body>
 </html>
