@@ -133,3 +133,13 @@ function logout() {
     localStorage.removeItem('user');
     window.location.href = "index.html";
 }
+<!-- At the bottom of resume-builder.html -->
+<script src="config.js"></script>
+<script src="sidebar.js"></script>
+<script>
+   // Now you can just use the variable APPS_SCRIPT_URL 
+   // and it will automatically be the right one!
+   async function generate() {
+       fetch(APPS_SCRIPT_URL, { ... });
+   }
+</script>
