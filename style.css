@@ -227,3 +227,13 @@ input:focus, textarea:focus { border-color: var(--primary); outline: none; }
     margin-left: 10px;
     text-transform: uppercase;
 }
+:root { --sidebar: #0f172a; --primary: #6366f1; --bg: #f1f5f9; }
+body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); display: flex; }
+.sidebar { width: 260px; background: var(--sidebar); height: 100vh; position: fixed; color: white; padding: 20px; box-sizing: border-box; }
+.main { margin-left: 260px; padding: 40px; width: 100%; box-sizing: border-box; }
+.card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+.privacy-shield { background: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 15px; border-radius: 8px; font-size: 13px; color: #334155; line-height: 1.5; }
+.privacy-shield strong { display: block; color: #0c4a6e; margin-bottom: 5px; }
+.action-btn { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+.btn-small { background: #e0e7ff; color: var(--primary); border: none; padding: 5px 12px; border-radius: 5px; font-size: 11px; cursor: pointer; }
+input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; margin-top: 5px; font-family: inherit; }
