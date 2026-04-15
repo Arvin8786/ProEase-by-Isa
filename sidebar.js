@@ -1,11 +1,22 @@
 // sidebar.js
+
+// --- UPDATE THESE TWO LINES FOR NEW RELEASES ---
+const APP_CONFIG = {
+    name: "ProEase",
+    version: "V3.2",
+    releaseDate: "October 28, 2023" // Update this for every release
+};
+
 document.addEventListener("DOMContentLoaded", function() {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user) { window.location.href = "index.html"; return; }
 
     const sidebarHTML = `
         <div class="sidebar">
-            <a href="dashboard.html" class="logo">Career<span>AI</span>.</a>
+            <div class="brand-area">
+                <a href="dashboard.html" class="logo">${APP_CONFIG.name}<span> ${APP_CONFIG.version}</span></a>
+                <div class="release-info">Released: ${APP_CONFIG.releaseDate}</div>
+            </div>
             
             <span class="nav-label">Main Menu</span>
             <div class="nav-group">
@@ -40,8 +51,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
     document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
 
-    // Auto-highlight active link
-    const path = window.location.pathname.split("/").pop();
+    // Update Browser Tab Title automatically
+    const path = window.location.pathname.split("/").pop().replace(".html", "");
+    const pageTitle = path ? path.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") : "Dashboard";
+    document.title = `${APP_CONFIG.name} ${APP_CONFIG.version} | ${pageTitle}`;
+
+    // Highlight active link
     const activeMap = {
         "dashboard.html": "nav-dashboard",
         "profile-parser.html": "nav-profile",
@@ -54,7 +69,8 @@ document.addEventListener("DOMContentLoaded", function() {
         "linkedin-auditor.html": "nav-linkedin",
         "job-tracker.html": "nav-tracker"
     };
-    if(activeMap[path]) document.getElementById(activeMap[path]).classList.add("active");
+    const currentPath = window.location.pathname.split("/").pop();
+    if(activeMap[currentPath]) document.getElementById(activeMap[currentPath]).classList.add("active");
 });
 
 function logout() {
