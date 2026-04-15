@@ -1,15 +1,29 @@
-:root { --sidebar: #0f172a; --primary: #6366f1; --bg: #f1f5f9; }
-body { font-family: 'Inter', sans-serif; margin: 0; display: flex; background: var(--bg); }
+:root {
+    --sidebar: #0f172a;
+    --primary: #6366f1;
+    --bg: #f1f5f9;
+    --card: #ffffff;
+}
 
-/* Copy the Sidebar and Card styles from my previous dashboard response here */
+body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); display: flex; }
+
+/* Sidebar */
 .sidebar { width: 260px; background: var(--sidebar); height: 100vh; color: white; padding: 30px 20px; position: fixed; box-sizing: border-box; }
-.main { margin-left: 260px; padding: 40px; flex-grow: 1; }
-.nav-item { padding: 12px 16px; display: block; color: #94a3b8; text-decoration: none; border-radius: 8px; margin: 4px 0; }
-.nav-item.active { background: #1e293b; color: white; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
-.card { background: white; padding: 25px; border-radius: 15px; border: 1px solid #e2e8f0; cursor: pointer; }
-.user-badge { background: white; padding: 8px 15px; border-radius: 20px; border: 1px solid #ddd; }
+.logo { font-size: 22px; font-weight: 800; color: white; text-decoration: none; margin-bottom: 30px; display: block; }
+.logo span { color: var(--primary); }
+.nav-label { font-size: 10px; color: #475569; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 10px 0; display: block; font-weight: 700; }
+.nav-item { padding: 12px 16px; color: #94a3b8; text-decoration: none; display: block; border-radius: 8px; font-weight: 500; font-size: 14px; }
+.nav-item:hover, .nav-item.active { background: #1e293b; color: white; }
+
+/* Main Content */
+.main { margin-left: 260px; padding: 40px; flex-grow: 1; min-height: 100vh; }
+.user-badge { background: white; padding: 8px 15px; border-radius: 20px; border: 1px solid #ddd; font-weight: bold; }
 .tier-tag { background: #e0e7ff; color: var(--primary); padding: 2px 8px; border-radius: 5px; font-size: 11px; margin-left: 10px; }
-.admin-section { display: none; margin-top: 20px; border-top: 1px solid #334155; padding-top: 10px; }
-.nav-label { font-size: 10px; color: #475569; text-transform: uppercase; display: block; margin-top: 15px; }
-.logout-btn { background: none; border: none; color: #f87171; cursor: pointer; padding: 10px 15px; }
+
+/* Feature Cards */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.card { background: var(--card); padding: 30px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+.action-btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; width: 100%; font-weight: 600; }
+
+.admin-section { display: none; margin-top: 20px; border-top: 1px solid #334155; padding-top: 15px; }
+.logout-btn { background: none; border: none; color: #f87171; cursor: pointer; padding: 10px 15px; font-weight: 600; text-align: left; width: 100%; margin-top: 20px;}
