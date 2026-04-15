@@ -2,21 +2,82 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Resume Builder | Career AI</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Loading | Career AI</title>
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .dev-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 70vh;
+            text-align: center;
+        }
+        .dev-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            background: #e0e7ff;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: var(--primary);
+        }
+        .badge-soon {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+        h1 { font-size: 32px; margin: 10px 0; color: var(--sidebar); }
+        p { color: #64748b; max-width: 450px; line-height: 1.6; }
+        .back-btn {
+            margin-top: 30px;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .back-btn:hover { background: #f8f9fa; border-color: #bbb; }
+    </style>
 </head>
 <body>
+
     <div class="main">
-        <h1>AI Resume Builder</h1>
-        <div class="card">
-            <h3>Build your future</h3>
-            <p>Use our AI to optimize your current resume for your dream job.</p>
-            <hr><br>
-            <button class="action-btn">Start Generation</button>
+        <div class="dev-container">
+            <div class="badge-soon">In Development</div>
+            <div class="dev-icon">⚙️</div>
+            <h1 id="featureName">Building Feature...</h1>
+            <p>Our AI engineers are currently training the models for this module to ensure the highest quality results. This feature will be available in the next update.</p>
+            
+            <button class="back-btn" onclick="location.href='dashboard.html'">← Back to Overview</button>
         </div>
     </div>
 
+    <!-- Shared Sidebar Script -->
     <script src="sidebar.js"></script>
+    
+    <script>
+        // Simple script to show the current feature name based on the filename
+        document.addEventListener("DOMContentLoaded", function() {
+            const path = window.location.pathname.split("/").pop().replace(".html", "");
+            const formattedName = path.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
+            document.getElementById('featureName').innerText = formattedName + " is Coming Soon";
+            document.title = formattedName + " | Career AI";
+        });
+    </script>
 </body>
 </html>
