@@ -101,15 +101,14 @@
 </head>
 <body>
 
-    <div class="login-card">
-        <div class="logo-icon">C</div>
-        <h1>Career AI Pro</h1>
-        <p>Elevate your career with AI</p>
-        
-        <div id="googleBtn"></div>
-
-        <div id="statusMessage"></div>
-    </div>
+   <div class="login-card">
+    <div class="logo-icon">P</div>
+    <h1>ProEase<span> V3.2</span></h1>
+    <p>Released: April 15, 2026</p>
+    
+    <div id="googleBtn"></div>
+    <div id="statusMessage"></div>
+</div>
 
     <script>
         const CLIENT_ID = "883425754646-qdtov35q7ud513ed0ugame8042n46uof.apps.googleusercontent.com";
@@ -156,12 +155,6 @@
                 statusMsg.innerText = "Connection failed. Please refresh.";
             }
         }
-        h1 span {
-    font-size: 14px;
-    font-weight: 400;
-    color: var(--text-muted);
-    margin-left: 5px;
-}
 
         window.onload = function () {
             google.accounts.id.initialize({
