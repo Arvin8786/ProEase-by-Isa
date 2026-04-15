@@ -2,82 +2,137 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feature Loading | Career AI</title>
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <!-- Shared Styles -->
+    <title>Master Profile | ProEase</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        .dev-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 70vh;
-            text-align: center;
-        }
-        .dev-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-            background: #e0e7ff;
-            width: 120px;
-            height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            color: var(--primary);
-        }
-        .badge-soon {
-            background: #fef3c7;
-            color: #92400e;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 15px;
-        }
-        h1 { font-size: 32px; margin: 10px 0; color: var(--sidebar); }
-        p { color: #64748b; max-width: 450px; line-height: 1.6; }
-        .back-btn {
-            margin-top: 30px;
-            background: white;
-            border: 1px solid #ddd;
-            padding: 12px 24px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        .back-btn:hover { background: #f8f9fa; border-color: #bbb; }
+        .profile-section { background:white; padding:30px; border-radius:15px; margin-bottom:20px; border:1px solid #e2e8f0; }
+        .input-group { margin-bottom:15px; position: relative; }
+        .ai-assist { position:absolute; right:0; top:0; color:#6366f1; border:none; background:none; cursor:pointer; font-weight:bold; font-size:12px; }
+        .repeater { border-left:3px solid #6366f1; padding-left:20px; margin-bottom:20px; }
+        input, textarea { width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; margin-top:5px; }
     </style>
 </head>
 <body>
-
     <div class="main">
-        <div class="dev-container">
-            <div class="badge-soon">In Development</div>
-            <div class="dev-icon">⚙️</div>
-            <h1 id="featureName">Building Feature...</h1>
-            <p>Our AI engineers are currently training the models for this module to ensure the highest quality results. This feature will be available in the next update.</p>
-            
-            <button class="back-btn" onclick="location.href='dashboard.html'">← Back to Overview</button>
+        <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+            <h1>Master Career Profile</h1>
+            <button class="action-btn" onclick="saveToDrive()" style="width:180px;">Save to My Drive</button>
+        </header>
+
+        <div class="privacy-shield">
+            <strong>🔒 Zero-Knowledge Privacy Architecture</strong>
+            Your profile details are stored exclusively within your own Google Drive. ProEase servers do not have access to this data.
         </div>
+
+        <!-- Personal -->
+        <div class="profile-section">
+            <h3>Personal Details</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <div class="input-group"><label>Full Name</label><input type="text" id="full_name"></div>
+                <div class="input-group"><label>Phone</label><input type="text" id="phone"></div>
+                <div class="input-group"><label>Email</label><input type="text" id="email"></div>
+                <div class="input-group"><label>Location</label><input type="text" id="location"></div>
+            </div>
+            <div class="input-group">
+                <label>Professional Summary</label>
+                <button class="ai-assist" onclick="runAi('summary')">🪄 AI ASSIST</button>
+                <textarea id="summary" rows="3"></textarea>
+            </div>
+        </div>
+
+        <!-- Experience -->
+        <div class="profile-section">
+            <div style="display:flex; justify-content:space-between">
+                <h3>Work Experience</h3>
+                <button onclick="addExp()" class="btn-small">+ Add Role</button>
+            </div>
+            <div id="experience-container"></div>
+        </div>
+
+        <button class="action-btn" onclick="saveToDrive()" style="margin-bottom:50px;">Save All Profile Data</button>
     </div>
 
-    <!-- Shared Sidebar Script -->
     <script src="sidebar.js"></script>
-    
     <script>
-        // Simple script to show the current feature name based on the filename
-        document.addEventListener("DOMContentLoaded", function() {
-            const path = window.location.pathname.split("/").pop().replace(".html", "");
-            const formattedName = path.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
-            document.getElementById('featureName').innerText = formattedName + " is Coming Soon";
-            document.title = formattedName + " | Career AI";
-        });
+        const driveToken = localStorage.getItem('drive_token');
+        let profileFileId = null;
+
+        async function findProfileFile() {
+            const res = await fetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder', {
+                headers: { Authorization: `Bearer ${driveToken}` }
+            });
+            const data = await res.json();
+            const file = data.files.find(f => f.name === 'profile_v3.json');
+            if (file) {
+                profileFileId = file.id;
+                loadFromDrive();
+            } else { addExp(); }
+        }
+
+        async function loadFromDrive() {
+            const res = await fetch(`https://www.googleapis.com/drive/v3/files/${profileFileId}?alt=media`, {
+                headers: { Authorization: `Bearer ${driveToken}` }
+            });
+            const data = await res.json();
+            document.getElementById('full_name').value = data.full_name || '';
+            document.getElementById('summary').value = data.summary || '';
+            if(data.experience) data.experience.forEach(exp => addExp(exp));
+        }
+
+        async function saveToDrive() {
+            const data = {
+                full_name: document.getElementById('full_name').value,
+                summary: document.getElementById('summary').value,
+                experience: Array.from(document.querySelectorAll('.repeater')).map(r => ({
+                    company: r.querySelector('.e-comp').value,
+                    role: r.querySelector('.e-role').value,
+                    desc: r.querySelector('.e-desc').value
+                }))
+            };
+            
+            const metadata = { name: 'profile_v3.json', parents: ['appDataFolder'] };
+            const form = new FormData();
+            form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
+            form.append('file', new Blob([JSON.stringify(data)], {type: 'application/json'}));
+
+            const url = profileFileId 
+                ? `https://www.googleapis.com/upload/drive/v3/files/${profileFileId}?uploadType=multipart`
+                : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
+
+            await fetch(url, { method: profileFileId ? 'PATCH' : 'POST', headers: { Authorization: `Bearer ${driveToken}` }, body: form });
+            alert("Saved to your Drive!");
+        }
+
+        function addExp(d = {company:'', role:'', desc:''}) {
+            const id = Date.now();
+            const html = `<div class="repeater" id="exp-${id}">
+                <input type="text" class="e-comp" placeholder="Company (e.g. Aetos)" value="${d.company}">
+                <input type="text" class="e-role" placeholder="Role (e.g. Logistics Officer)" value="${d.role}">
+                <div class="input-group">
+                    <button class="ai-assist" onclick="runAi('experience', '${id}')">🪄 AI GENERATE</button>
+                    <textarea class="e-desc" id="desc-${id}" rows="4" placeholder="Achievements...">${d.desc}</textarea>
+                </div>
+            </div>`;
+            document.getElementById('experience-container').insertAdjacentHTML('beforeend', html);
+        }
+
+        async function runAi(type, id) {
+            let role = "", company = "";
+            if(type === 'experience') {
+                role = document.querySelector(`#exp-${id} .e-role`).value;
+                company = document.querySelector(`#exp-${id} .e-comp`).value;
+            } else { role = "General Professional"; }
+
+            const res = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'aiAssist', type: type, role: role, company: company })
+            });
+            const result = await res.json();
+            if(type === 'experience') document.getElementById(`desc-${id}`).value = result.answer;
+            else document.getElementById(type).value = result.answer;
+        }
+
+        window.onload = findProfileFile;
     </script>
 </body>
 </html>
