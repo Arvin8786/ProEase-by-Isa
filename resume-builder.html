@@ -2,82 +2,123 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feature Loading | Career AI</title>
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <!-- Shared Styles -->
+    <title>Resume Builder | ProEase V3.2</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        .dev-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 70vh;
-            text-align: center;
-        }
-        .dev-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-            background: #e0e7ff;
-            width: 120px;
-            height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            color: var(--primary);
-        }
-        .badge-soon {
-            background: #fef3c7;
-            color: #92400e;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 15px;
-        }
-        h1 { font-size: 32px; margin: 10px 0; color: var(--sidebar); }
-        p { color: #64748b; max-width: 450px; line-height: 1.6; }
-        .back-btn {
-            margin-top: 30px;
-            background: white;
-            border: 1px solid #ddd;
-            padding: 12px 24px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        .back-btn:hover { background: #f8f9fa; border-color: #bbb; }
+        .resume-container { background: white; width: 210mm; min-height: 297mm; padding: 40px; margin: 0 auto; box-shadow: 0 0 20px rgba(0,0,0,0.1); color: #1e293b; font-family: 'Inter', sans-serif; }
+        .resume-header { text-align: center; border-bottom: 2px solid #6366f1; padding-bottom: 20px; margin-bottom: 20px; position: relative; }
+        .resume-name { font-size: 32px; font-weight: 800; text-transform: uppercase; margin: 0; color: #0f172a; }
+        .resume-contact { font-size: 12px; color: #64748b; margin-top: 5px; }
+        .resume-section { margin-bottom: 20px; }
+        .section-title { font-size: 14px; font-weight: 800; color: #6366f1; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 10px; }
+        .exp-item, .edu-item { margin-bottom: 15px; }
+        .item-header { display: flex; justify-content: space-between; font-weight: 700; font-size: 14px; }
+        .item-sub { font-size: 13px; color: #475569; font-style: italic; margin-bottom: 5px; }
+        .item-desc { font-size: 13px; white-space: pre-wrap; line-height: 1.5; }
+        #resume-photo { width: 100px; height: 100px; border-radius: 50%; position: absolute; right: 0; top: 0; object-fit: cover; }
+        @media print { .main { margin: 0; padding: 0; } .sidebar { display: none; } .resume-container { box-shadow: none; margin: 0; width: 100%; } }
     </style>
 </head>
 <body>
 
-    <div class="main">
-        <div class="dev-container">
-            <div class="badge-soon">In Development</div>
-            <div class="dev-icon">⚙️</div>
-            <h1 id="featureName">Building Feature...</h1>
-            <p>Our AI engineers are currently training the models for this module to ensure the highest quality results. This feature will be available in the next update.</p>
-            
-            <button class="back-btn" onclick="location.href='dashboard.html'">← Back to Overview</button>
-        </div>
+<div class="main">
+    <div style="margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center;">
+        <h1>Professional Resume Builder</h1>
+        <button class="action-btn" onclick="window.print()">🖨️ Print to PDF</button>
     </div>
 
-    <!-- Shared Sidebar Script -->
-    <script src="sidebar.js"></script>
-    
-    <script>
-        // Simple script to show the current feature name based on the filename
-        document.addEventListener("DOMContentLoaded", function() {
-            const path = window.location.pathname.split("/").pop().replace(".html", "");
-            const formattedName = path.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
-            document.getElementById('featureName').innerText = formattedName + " is Coming Soon";
-            document.title = formattedName + " | Career AI";
+    <div class="resume-container" id="resume-content">
+        <!-- RENDERED DYNAMICALLY -->
+    </div>
+</div>
+
+<script src="sidebar.js"></script>
+<script>
+    const driveToken = localStorage.getItem('drive_token');
+
+    async function loadResume() {
+        const res = await fetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder', {
+            headers: { Authorization: `Bearer ${driveToken}` }
         });
-    </script>
+        const list = await res.json();
+        const file = list.files.find(f => f.name === 'proease_master_profile.json');
+        
+        if(file) {
+            const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, {
+                headers: { Authorization: `Bearer ${driveToken}` }
+            });
+            const p = await fileRes.json();
+            renderResume(p);
+        }
+    }
+
+    function renderResume(p) {
+        const container = document.getElementById('resume-content');
+        
+        let html = `
+            <div class="resume-header">
+                ${p.personal.photo ? `<img src="${p.personal.photo}" id="resume-photo">` : ''}
+                <h1 class="resume-name">${p.personal.name}</h1>
+                <p style="font-weight:600; color:#6366f1; margin:5px 0;">${p.personal.title || ''}</p>
+                <div class="resume-contact">
+                    ${p.personal.email} | ${p.personal.phone} | ${p.personal.loc}
+                    ${p.personal.link ? ` | ${p.personal.link}` : ''}
+                </div>
+                <!-- HIDDEN DATA INJECTED ONLY IF PRESENT -->
+                <div style="font-size:10px; margin-top:5px; color:#94a3b8;">
+                    ${p.personal.nationality ? `Nationality: ${p.personal.nationality} | ` : ''}
+                    ${p.personal.visa ? `Visa: ${p.personal.visa}` : ''}
+                </div>
+            </div>
+        `;
+
+        if(p.personal.summary) {
+            html += `<div class="resume-section"><div class="section-title">Professional Summary</div><p class="item-desc">${p.personal.summary}</p></div>`;
+        }
+
+        if(p.experience && p.experience.length > 0) {
+            html += `<div class="resume-section"><div class="section-title">Work Experience</div>`;
+            p.experience.forEach(exp => {
+                if(exp.role || exp.comp) {
+                    html += `
+                        <div class="exp-item">
+                            <div class="item-header"><span>${exp.role}</span><span>${exp.dur}</span></div>
+                            <div class="item-sub">${exp.comp}</div>
+                            <div class="item-desc">${exp.desc}</div>
+                        </div>`;
+                }
+            });
+            html += `</div>`;
+        }
+
+        if(p.education && p.education.length > 0) {
+            html += `<div class="resume-section"><div class="section-title">Education</div>`;
+            p.education.forEach(edu => {
+                html += `
+                    <div class="edu-item">
+                        <div class="item-header"><span>${edu.deg}</span><span>${edu.year}</span></div>
+                        <div class="item-sub">${edu.school}</div>
+                    </div>`;
+            });
+            html += `</div>`;
+        }
+
+        if(p.personal.skills) {
+            html += `<div class="resume-section"><div class="section-title">Skills & Expertise</div><p class="item-desc">${p.personal.skills}</p></div>`;
+        }
+
+        if(p.references && p.references.length > 0) {
+            html += `<div class="resume-section"><div class="section-title">References</div>`;
+            p.references.forEach(ref => {
+                html += `<div class="exp-item"><div class="item-header">${ref.name}</div><div class="item-sub">${ref.contact}</div></div>`;
+            });
+            html += `</div>`;
+        }
+
+        container.innerHTML = html;
+    }
+
+    window.onload = loadResume;
+</script>
 </body>
 </html>
