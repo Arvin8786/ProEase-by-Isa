@@ -1,10 +1,9 @@
 // sidebar.js
 
-// --- UPDATE THESE TWO LINES FOR NEW RELEASES ---
 const APP_CONFIG = {
     name: "ProEase",
     version: "V3.2",
-    releaseDate: "October 28, 2023" // Update this for every release
+    releaseDate: "April 15, 2026" 
 };
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -12,41 +11,88 @@ document.addEventListener("DOMContentLoaded", function() {
     if (!user) { window.location.href = "index.html"; return; }
 
     const sidebarHTML = `
-        <div class="sidebar">
-            <div class="brand-area">
-                <a href="dashboard.html" class="logo">${APP_CONFIG.name}<span> ${APP_CONFIG.version}</span></a>
-                <div class="release-info">Released: ${APP_CONFIG.releaseDate}</div>
+        <div class="sidebar" style="display: flex; flex-direction: column; height: 100vh; position: fixed; top: 0; left: 0; width: 260px; background: #0f172a; box-sizing: border-box;">
+            
+            <!-- 1. FIXED HEADER (Logo & Version) -->
+            <div class="brand-area" style="padding: 25px 20px 15px 20px; border-bottom: 1px solid #1e293b;">
+                <a href="dashboard.html" class="logo" style="color: white; text-decoration: none; font-size: 22px; font-weight: 800;">${APP_CONFIG.name}<span style="color: #6366f1; font-size: 14px; font-weight: 400; margin-left: 5px;">${APP_CONFIG.version}</span></a>
+                <div class="release-info" style="font-size: 11px; color: #64748b; margin-top: 5px;">Released: ${APP_CONFIG.releaseDate}</div>
             </div>
             
-            <span class="nav-label">Main Menu</span>
-            <div class="nav-group">
-                <a href="dashboard.html" class="nav-item" id="nav-dashboard">Overview</a>
-                <a href="profile-parser.html" class="nav-item" id="nav-profile">AI Profile Sync</a>
+            <!-- 2. SCROLLABLE MENU AREA -->
+            <div class="menu-area" style="flex: 1; overflow-y: auto; padding: 15px 15px;">
+                
+                <a href="dashboard.html" class="nav-item" id="nav-dashboard">📊 Overview Dashboard</a>
+                <a href="profile-parser.html" class="nav-item" id="nav-profile">👤 AI Profile Sync</a>
+
+                <!-- CATEGORY: DOCUMENT TOOLS -->
+                <details class="nav-dropdown" open>
+                    <summary class="nav-label">📄 Document Creation</summary>
+                    <div class="dropdown-content">
+                        <a href="resume-builder.html" class="nav-item" id="nav-resume">Resume Builder</a>
+                        <a href="cover-letter.html" class="nav-item" id="nav-cover">Cover Letter Gen</a>
+                        <a href="resignation-gen.html" class="nav-item" id="nav-resign">Resignation Letter</a>
+                        <a href="form-filler.html" class="nav-item" id="nav-form">AI Form Filler</a>
+                    </div>
+                </details>
+
+                <!-- CATEGORY: INTERVIEW PREP -->
+                <details class="nav-dropdown" open>
+                    <summary class="nav-label">🎯 Interview Prep</summary>
+                    <div class="dropdown-content">
+                        <a href="mock-interview.html" class="nav-item" id="nav-interview">AI Mock Interview</a>
+                        <a href="resume-tailor.html" class="nav-item" id="nav-tailor">Resume Tailoring</a>
+                    </div>
+                </details>
+
+                <!-- CATEGORY: ANALYTICS -->
+                <details class="nav-dropdown" open>
+                    <summary class="nav-label">📈 Career Analytics</summary>
+                    <div class="dropdown-content">
+                        <a href="ats-checker.html" class="nav-item" id="nav-ats">ATS Checker</a>
+                        <a href="linkedin-auditor.html" class="nav-item" id="nav-linkedin">LinkedIn Auditor</a>
+                        <a href="job-tracker.html" class="nav-item" id="nav-tracker">Job Tracker</a>
+                    </div>
+                </details>
+
+                <!-- CATEGORY: ADMIN -->
+                <div id="adminArea" style="${user.role === 'Admin' ? 'display:block' : 'display:none'}">
+                    <details class="nav-dropdown">
+                        <summary class="nav-label" style="color: #f87171;">🛡️ System Admin</summary>
+                        <div class="dropdown-content">
+                            <a href="admin.html" class="nav-item" style="color: #f87171;">Manage Users</a>
+                        </div>
+                    </details>
+                </div>
+
             </div>
 
-            <span class="nav-label">Document Tools</span>
-            <div class="nav-group">
-                <a href="resume-builder.html" class="nav-item" id="nav-resume">Resume Builder</a>
-                <a href="cover-letter.html" class="nav-item" id="nav-cover">Cover Letter</a>
-                <a href="resignation-gen.html" class="nav-item" id="nav-resign">Resignation Gen</a>
-                <a href="form-filler.html" class="nav-item" id="nav-form">AI Form Filler</a>
+            <!-- 3. FIXED FOOTER (Logout Button) -->
+            <div style="padding: 15px 20px; border-top: 1px solid #1e293b; background: #0f172a;">
+                <button onclick="logout()" class="logout-btn" style="width: 100%; background: #ef4444; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.2s;">Logout Session</button>
             </div>
-
-            <span class="nav-label">Interview & AI</span>
-            <div class="nav-group">
-                <a href="mock-interview.html" class="nav-item" id="nav-interview">Mock Interview</a>
-                <a href="ats-checker.html" class="nav-item" id="nav-ats">ATS Checker</a>
-                <a href="linkedin-auditor.html" class="nav-item" id="nav-linkedin">LinkedIn Auditor</a>
-                <a href="job-tracker.html" class="nav-item" id="nav-tracker">Job Tracker</a>
-            </div>
-
-            <div id="adminArea" class="admin-section" style="${user.role === 'Admin' ? 'display:block' : 'display:none'}">
-                <span class="nav-label">System Admin</span>
-                <a href="admin.html" class="nav-item" style="color: #f87171; background: rgba(248, 113, 113, 0.1);">Manage Users</a>
-            </div>
-
-            <button onclick="logout()" class="logout-btn">Logout Session</button>
         </div>
+
+        <!-- Inline CSS for elements inside JS -->
+        <style>
+            .menu-area::-webkit-scrollbar { width: 5px; }
+            .menu-area::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+            
+            .nav-item {
+                display: block; padding: 10px 15px; color: #94a3b8; text-decoration: none;
+                border-radius: 8px; font-size: 14px; font-weight: 500; margin-bottom: 4px; transition: all 0.2s;
+            }
+            .nav-item:hover, .nav-item.active { background: #1e293b; color: white; }
+            
+            .nav-label {
+                font-size: 11px; text-transform: uppercase; color: #475569; letter-spacing: 1px;
+                font-weight: 700; cursor: pointer; display: block; padding: 15px 10px 5px 10px;
+            }
+            .nav-dropdown[open] .nav-label { color: #6366f1; }
+            
+            .dropdown-content { padding-left: 10px; margin-top: 5px; }
+            .logout-btn:hover { background: #dc2626 !important; }
+        </style>
     `;
 
     document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
@@ -67,7 +113,8 @@ document.addEventListener("DOMContentLoaded", function() {
         "mock-interview.html": "nav-interview",
         "ats-checker.html": "nav-ats",
         "linkedin-auditor.html": "nav-linkedin",
-        "job-tracker.html": "nav-tracker"
+        "job-tracker.html": "nav-tracker",
+        "resume-tailor.html": "nav-tailor"
     };
     const currentPath = window.location.pathname.split("/").pop();
     if(activeMap[currentPath]) document.getElementById(activeMap[currentPath]).classList.add("active");
