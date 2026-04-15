@@ -4,74 +4,159 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Master Profile | ProEase V3.2</title>
-    <!-- Fonts & Shared Styles -->
+    
+    <!-- External Resources -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     
-    <!-- AI Background Removal Libraries -->
+    <!-- AI Background Removal Logic (Local) -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
 
     <style>
-        .section-card { background: white; padding: 35px; border-radius: 20px; margin-bottom: 25px; border: 1px solid #e2e8f0; position: relative; }
+        /* Specific Styles for Profile Module */
+        .section-card { 
+            background: white; 
+            padding: 35px; 
+            border-radius: 20px; 
+            margin-bottom: 30px; 
+            border: 1px solid #e2e8f0; 
+            position: relative; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px; }
         .row-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 15px; }
-        label { display: block; font-weight: 700; margin-bottom: 8px; color: #334155; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
         
-        /* Auto-Save Status Indicator */
-        #save-status { position: fixed; top: 20px; right: 20px; font-size: 11px; font-weight: 800; color: #10b981; background: white; padding: 6px 16px; border-radius: 30px; border: 1px solid #10b981; z-index: 10000; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: none; }
+        /* Auto-Save Indicator */
+        #save-status { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            font-size: 11px; 
+            font-weight: 800; 
+            color: #10b981; 
+            background: white; 
+            padding: 8px 18px; 
+            border-radius: 30px; 
+            border: 1px solid #10b981; 
+            z-index: 10000; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            display: none; 
+        }
 
-        /* Media Areas */
-        .photo-container { text-align: center; width: 130px; }
-        #photo-preview { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 3px solid #6366f1; background: #f1f5f9; margin-bottom: 10px; }
-        #sig-canvas { border: 1px solid #cbd5e1; background: #fff; border-radius: 10px; width: 100%; height: 110px; cursor: crosshair; }
+        /* AI Draft Overlay System */
+        .ai-draft-box { 
+            display: none; 
+            background: #f5f7ff; 
+            border: 2px solid #6366f1; 
+            padding: 20px; 
+            border-radius: 15px; 
+            margin-top: 15px; 
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.2);
+            animation: slideDown 0.3s ease-out;
+        }
+        .draft-text { 
+            font-size: 14px; 
+            line-height: 1.6; 
+            color: #1e293b; 
+            font-style: italic; 
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+        }
+        .draft-actions { display: flex; gap: 10px; }
+        .draft-btn { 
+            padding: 8px 16px; 
+            font-size: 11px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            border: none; 
+            font-weight: 800; 
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
 
-        /* AI Draft Overlay */
-        .ai-draft-box { display: none; background: #eef2ff; border: 1px solid #6366f1; padding: 20px; border-radius: 15px; margin-top: 15px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1); animation: slideIn 0.3s ease; }
-        .draft-text { font-size: 14px; line-height: 1.6; color: #1e293b; font-style: italic; white-space: pre-wrap; }
-        .draft-actions { display: flex; gap: 10px; margin-top: 15px; }
-        .draft-btn { padding: 8px 16px; font-size: 11px; border-radius: 8px; cursor: pointer; border: none; font-weight: 800; text-transform: uppercase; }
+        /* Input Decorations */
+        .ai-magic-btn { 
+            position: absolute; 
+            right: 10px; 
+            top: -10px; 
+            background: #6366f1; 
+            color: white; 
+            border: none; 
+            padding: 6px 14px; 
+            border-radius: 8px; 
+            font-size: 10px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            z-index: 10;
+            box-shadow: 0 4px 6px rgba(99, 102, 241, 0.3);
+        }
+        .ai-magic-btn:hover { background: #4f46e5; transform: translateY(-1px); }
 
-        /* Repeaters */
-        .repeater-item { background: #f8fafc; padding: 25px; border-radius: 15px; border-left: 5px solid #6366f1; margin-bottom: 20px; position: relative; }
-        .remove-btn { color: #ef4444; font-size: 11px; font-weight: 800; cursor: pointer; position: absolute; top: 15px; right: 20px; text-transform: uppercase; }
-        
-        .ai-magic-btn { position: absolute; right: 10px; top: -10px; background: #6366f1; color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 10px; font-weight: 800; cursor: pointer; z-index: 10; }
+        /* Media Elements */
+        #photo-preview { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #6366f1; background: #f8fafc; }
+        #sig-canvas { border: 1px solid #cbd5e1; background: #fff; border-radius: 12px; width: 100%; height: 120px; cursor: crosshair; }
 
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Repeater Items */
+        .repeater-item { 
+            background: #f8fafc; 
+            padding: 25px; 
+            border-radius: 15px; 
+            border-left: 5px solid #6366f1; 
+            margin-bottom: 20px; 
+            position: relative; 
+        }
+        .remove-btn { 
+            color: #ef4444; 
+            font-size: 11px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            position: absolute; 
+            top: 15px; 
+            right: 20px; 
+            text-transform: uppercase;
+            padding: 5px;
+        }
+
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-<div id="save-status">☁️ Syncing to Drive...</div>
+<div id="save-status">✍️ Syncing to Drive...</div>
 
 <div class="main">
-    <header>
+    <header style="margin-bottom: 40px;">
         <h1 style="margin:0;">Master Career Profile</h1>
-        <p style="color:#64748b; font-size:14px;">Privacy-first: All data is strictly auto-saved to your personal Google Drive.</p>
+        <p style="color:#64748b; font-size:15px; margin-top:5px;">Professional details are auto-saved to your personal Google Drive AppData folder.</p>
     </header>
 
     <div class="privacy-shield">
-        <strong>🔒 Zero-Knowledge Privacy Architecture</strong>
-        ProEase is designed so that your personal details, photo, and signature remain under your total control. Data is encrypted and stored in your private Google AppData folder; the developer cannot access it.
+        <strong>🔒 Zero-Knowledge Privacy Protocol</strong>
+        ProEase utilizes a Decentralized Data Philosophy. All personal details, work history, and media remain under your total control. Our servers do not host or have access to your private profile files.
     </div>
 
-    <!-- 1. PERSONAL IDENTITY & VISUALS -->
+    <!-- 1. IDENTITY & VISUAL BRANDING -->
     <div class="section-card">
-        <h3>1. Personal Identity & Visual Branding</h3>
-        <div style="display:flex; gap:30px; align-items:flex-start; margin-bottom:20px;">
-            <div class="photo-container">
-                <img id="photo-preview" src="https://via.placeholder.com/110?text=Photo">
+        <h3>1. Identity & Visual Branding</h3>
+        <div style="display:flex; gap:40px; align-items:flex-start; margin-bottom:30px;">
+            <div style="text-align:center; width:140px;">
+                <img id="photo-preview" src="https://via.placeholder.com/120?text=Photo">
                 <input type="file" id="photo-input" hidden onchange="handlePhoto(event)">
-                <button class="btn-small" onclick="document.getElementById('photo-input').click()">Upload</button>
-                <button id="rb-btn" class="btn-small" style="display:none; background:#10b981; color:white; margin-top:5px;" onclick="removeBG()">🪄 AI BG</button>
+                <button class="btn-small" style="display:block; margin:10px auto;" onclick="document.getElementById('photo-input').click()">Upload Photo</button>
+                <button id="rb-btn" class="btn-small" style="display:none; background:#10b981; color:white;" onclick="removeBG()">🪄 AI Remove BG</button>
             </div>
             <div style="flex:1">
-                <label>Digital Signature (Draw or Upload Image)</label>
+                <label>Digital Signature (Draw or Upload)</label>
                 <canvas id="sig-canvas"></canvas>
-                <div style="margin-top:5px; display:flex; gap:10px;">
+                <div style="margin-top:10px; display:flex; gap:10px;">
                     <button class="btn-small" onclick="clearSig()">Clear</button>
-                    <button class="btn-small" onclick="document.getElementById('sig-upload').click()">Upload</button>
+                    <button class="btn-small" onclick="document.getElementById('sig-upload').click()">Upload Image</button>
                     <input type="file" id="sig-upload" hidden onchange="uploadSig(event)">
                 </div>
             </div>
@@ -79,7 +164,17 @@
 
         <div class="row">
             <div class="input-group"><label>Full Name</label><input type="text" id="p_name" oninput="autoSave()"></div>
-            <div class="input-group"><label>Target Professional Title</label><input type="text" id="p_title" placeholder="e.g. Logistics & Security Manager" oninput="autoSave()"></div>
+            <div class="input-group"><label>Professional Title</label><input type="text" id="p_title" placeholder="e.g. Senior Logistics Officer" oninput="autoSave()"></div>
+        </div>
+
+        <div class="row">
+            <div class="input-group"><label>Email Address</label><input type="text" id="p_email" oninput="autoSave()"></div>
+            <div class="input-group"><label>Phone Number</label><input type="text" id="p_phone" oninput="autoSave()"></div>
+        </div>
+
+        <div class="row">
+            <div class="input-group"><label>City & Country</label><input type="text" id="p_loc" oninput="autoSave()"></div>
+            <div class="input-group"><label>LinkedIn Profile URL</label><input type="text" id="p_link" oninput="autoSave()"></div>
         </div>
 
         <div class="row-5">
@@ -90,10 +185,9 @@
             <div class="input-group">
                 <label>Gender</label>
                 <select id="p_gender" onchange="autoSave()">
-                    <option value="">Select</option>
+                    <option value="">- Select -</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
-                    <option value="Other">Other</option>
                 </select>
             </div>
         </div>
@@ -104,12 +198,12 @@
         <div style="position:relative">
             <h3>2. Professional Summary</h3>
             <button class="ai-magic-btn" onclick="runAi('summary')">🪄 AI SUGGEST</button>
-            <textarea id="p_summary" rows="5" placeholder="Click AI Suggest to generate a summary based on your title..." oninput="autoSave()"></textarea>
+            <textarea id="p_summary" rows="5" placeholder="Highlight your career achievements..." oninput="autoSave()"></textarea>
             
             <div id="draft-summary" class="ai-draft-box">
-                <div class="draft-text" id="text-summary">AI is thinking...</div>
+                <div class="draft-text" id="text-summary"></div>
                 <div class="draft-actions">
-                    <button class="draft-btn" style="background:#6366f1; color:white;" onclick="applyAi('summary', 'replace')">Replace</button>
+                    <button class="draft-btn" style="background:#6366f1; color:white;" onclick="applyAi('summary', 'replace')">Replace Current</button>
                     <button class="draft-btn" style="background:#e0e7ff; color:#4338ca;" onclick="applyAi('summary', 'add')">Add to Profile</button>
                     <button class="draft-btn" style="background:#f1f5f9; color:#475569;" onclick="runAi('summary')">Regenerate</button>
                 </div>
@@ -120,8 +214,8 @@
     <!-- 3. WORK EXPERIENCE -->
     <div class="section-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h3>3. Work History</h3>
-            <button class="btn-small" style="background:#0f172a; color:white;" onclick="addExperience()">+ Add Role</button>
+            <h3>3. Detailed Work History</h3>
+            <button class="btn-small" style="background:#0f172a; color:white;" onclick="addExperience()">+ Add Experience</button>
         </div>
         <div id="experience-list"></div>
     </div>
@@ -129,7 +223,7 @@
     <!-- 4. EDUCATION -->
     <div class="section-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h3>4. Education & Certifications</h3>
+            <h3>4. Academic Background</h3>
             <button class="btn-small" style="background:#0f172a; color:white;" onclick="addEducation()">+ Add Education</button>
         </div>
         <div id="education-list"></div>
@@ -139,9 +233,9 @@
     <div class="row">
         <div class="section-card">
             <div style="position:relative">
-                <h3>5. Skills</h3>
+                <h3>5. Skills & Expertise</h3>
                 <button class="ai-magic-btn" onclick="runAi('skills')">🪄 AI SUGGEST</button>
-                <textarea id="p_skills" rows="5" placeholder="e.g. Risk Analysis, SAP, Team Leadership..." oninput="autoSave()"></textarea>
+                <textarea id="p_skills" rows="6" placeholder="List skills separated by commas..." oninput="autoSave()"></textarea>
                 <div id="draft-skills" class="ai-draft-box">
                     <div class="draft-text" id="text-skills"></div>
                     <div class="draft-actions">
@@ -152,8 +246,10 @@
             </div>
         </div>
         <div class="section-card">
-            <h3>6. Languages</h3>
-            <button class="btn-small" style="background:#0f172a; color:white; margin-bottom:15px;" onclick="addLanguage()">+ Add</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3>6. Languages</h3>
+                <button class="btn-small" style="background:#0f172a; color:white;" onclick="addLanguage()">+ Add</button>
+            </div>
             <div id="language-list"></div>
         </div>
     </div>
@@ -167,36 +263,39 @@
         <div id="reference-list"></div>
     </div>
 
+    <div style="height: 100px;"></div>
 </div>
 
+<!-- SCRIPTS -->
+<script src="config.js"></script>
 <script src="sidebar.js"></script>
 <script>
     const driveToken = localStorage.getItem('drive_token');
-    const APPS_SCRIPT_URL = "YOUR_APPS_SCRIPT_URL_HERE";
     let profileFileId = null;
     let autoSaveTimeout;
+    let activeAiDraft = "";
 
-    // --- REPEATER FUNCTIONS ---
+    // --- REPEATER GENERATORS ---
 
     function addExperience(d = {comp:'', role:'', dur:'', desc:''}) {
-        const id = Date.now() + Math.random();
+        const id = 'exp_' + Math.random().toString(36).substr(2, 9);
         const html = `
-            <div class="repeater-item" id="exp-${id}">
-                <div class="remove-btn" onclick="this.parentElement.remove(); autoSave();">Remove</div>
+            <div class="repeater-item" id="${id}">
+                <div class="remove-btn" onclick="this.parentElement.remove(); autoSave();">Remove Role</div>
                 <div class="row">
                     <div class="input-group"><label>Company</label><input type="text" class="e-comp" value="${d.comp}" oninput="autoSave()"></div>
-                    <div class="input-group"><label>Dates (e.g. 2020 - Present)</label><input type="text" class="e-dur" value="${d.dur}" oninput="autoSave()"></div>
+                    <div class="input-group"><label>Duration (e.g. 2021 - Present)</label><input type="text" class="e-dur" value="${d.dur}" oninput="autoSave()"></div>
                 </div>
-                <div class="input-group"><label>Job Title</label><input type="text" class="e-role" value="${d.role}" oninput="autoSave()"></div>
+                <div class="input-group"><label>Job Title / Position</label><input type="text" class="e-role" value="${d.role}" oninput="autoSave()" style="margin-bottom:15px;"></div>
                 <div style="position:relative">
-                    <label>Description & Achievements</label>
+                    <label>Job Description & Achievements</label>
                     <button class="ai-magic-btn" onclick="runAi('experience', '${id}')">🪄 AI GENERATE</button>
                     <textarea class="e-desc" id="desc-${id}" oninput="autoSave()">${d.desc}</textarea>
                     <div id="draft-${id}" class="ai-draft-box">
                         <div class="draft-text" id="text-${id}"></div>
                         <div class="draft-actions">
                             <button class="draft-btn" style="background:#6366f1; color:white;" onclick="applyAi('experience', 'replace', '${id}')">Replace</button>
-                            <button class="draft-btn" style="background:#e0e7ff; color:#4338ca;" onclick="applyAi('experience', 'add', '${id}')">Add</button>
+                            <button class="draft-btn" style="background:#e0e7ff; color:#4338ca;" onclick="applyAi('experience', 'add', '${id}')">Add to Description</button>
                             <button class="draft-btn" style="background:#f1f5f9; color:#475569;" onclick="runAi('experience', '${id}')">Regenerate</button>
                         </div>
                     </div>
@@ -210,18 +309,18 @@
             <div class="repeater-item">
                 <div class="remove-btn" onclick="this.parentElement.remove(); autoSave();">Remove</div>
                 <div class="row">
-                    <input type="text" class="edu-school" placeholder="University" value="${d.school}" oninput="autoSave()">
-                    <input type="text" class="edu-year" placeholder="Year" value="${d.year}" oninput="autoSave()">
+                    <input type="text" class="edu-school" placeholder="University / Institution Name" value="${d.school}" oninput="autoSave()">
+                    <input type="text" class="edu-year" placeholder="Graduation Year" value="${d.year}" oninput="autoSave()">
                 </div>
-                <input type="text" class="edu-deg" placeholder="Degree / Qualification" value="${d.deg}" oninput="autoSave()">
+                <input type="text" class="edu-deg" placeholder="Degree / Certification Earned" value="${d.deg}" oninput="autoSave()">
             </div>`;
         document.getElementById('education-list').insertAdjacentHTML('beforeend', html);
     }
 
     function addLanguage(d = {name:'', level:''}) {
         const html = `<div class="row" style="margin-bottom:10px;">
-            <input type="text" class="lang-name" placeholder="Language" value="${d.name}" oninput="autoSave()">
-            <input type="text" class="lang-level" placeholder="Level (e.g. Fluent)" value="${d.level}" oninput="autoSave()">
+            <input type="text" class="lang-name" placeholder="Language (e.g. English)" value="${d.name}" oninput="autoSave()">
+            <input type="text" class="lang-level" placeholder="Proficiency (e.g. Native)" value="${d.level}" oninput="autoSave()">
         </div>`;
         document.getElementById('language-list').insertAdjacentHTML('beforeend', html);
     }
@@ -230,37 +329,55 @@
         const html = `
             <div class="repeater-item" style="border-left-color:#10b981">
                 <div class="remove-btn" onclick="this.parentElement.remove(); autoSave();">Remove</div>
-                <input type="text" class="ref-name" placeholder="Name & Company" value="${d.name}" oninput="autoSave()">
-                <input type="text" class="ref-contact" placeholder="Email / Phone" value="${d.contact}" style="margin-top:10px" oninput="autoSave()">
+                <input type="text" class="ref-name" placeholder="Reference Name, Job Title, Company" value="${d.name}" oninput="autoSave()">
+                <input type="text" class="ref-contact" placeholder="Email Address or Phone Number" value="${d.contact}" style="margin-top:10px" oninput="autoSave()">
             </div>`;
         document.getElementById('reference-list').insertAdjacentHTML('beforeend', html);
     }
 
-    // --- SIGNATURE & PHOTO ---
+    // --- SIGNATURE & PHOTO LOGIC ---
     const canvas = document.getElementById('sig-canvas');
     const ctx = canvas.getContext('2d');
     let drawing = false;
-    canvas.width = 600; canvas.height = 110;
+    
+    function initCanvas() {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = 120;
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#000';
+    }
+
     canvas.addEventListener('mousedown', () => drawing = true);
     canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); autoSave(); });
     canvas.addEventListener('mousemove', (e) => {
         if(!drawing) return;
         const rect = canvas.getBoundingClientRect();
-        ctx.lineWidth = 2; ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top); ctx.stroke();
+        ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+        ctx.stroke();
     });
+    
     function clearSig() { ctx.clearRect(0,0,canvas.width,canvas.height); autoSave(); }
+    
     function uploadSig(e) {
-        const reader = new FileReader();
-        reader.onload = (f) => { const img = new Image(); img.onload = () => { ctx.drawImage(img,0,0,canvas.width,canvas.height); autoSave(); }; img.src = f.target.result; };
-        reader.readAsDataURL(e.target.files[0]);
+        const r = new FileReader();
+        r.onload = (f) => { const img = new Image(); img.onload = () => { ctx.drawImage(img,0,0,canvas.width,canvas.height); autoSave(); }; img.src = f.target.result; };
+        r.readAsDataURL(e.target.files[0]);
     }
+
     function handlePhoto(e) {
-        const reader = new FileReader();
-        reader.onload = (f) => { document.getElementById('photo-preview').src = f.target.result; document.getElementById('rb-btn').style.display='inline-block'; autoSave(); };
-        reader.readAsDataURL(e.target.files[0]);
+        const r = new FileReader();
+        r.onload = (f) => { 
+            document.getElementById('photo-preview').src = f.target.result; 
+            document.getElementById('rb-btn').style.display = 'inline-block';
+            autoSave();
+        };
+        r.readAsDataURL(e.target.files[0]);
     }
+
     async function removeBG() {
-        const btn = document.getElementById('rb-btn'); btn.innerText = "Processing...";
+        const btn = document.getElementById('rb-btn');
+        btn.innerText = "Local AI Processing...";
         const img = document.getElementById('photo-preview');
         const net = await bodyPix.load();
         const segmentation = await net.segmentPerson(img);
@@ -271,24 +388,27 @@
         const imageData = ctxTmp.getImageData(0,0,canvasTmp.width,canvasTmp.height);
         for (let i = 0; i < imageData.data.length; i += 4) { if (segmentation.data[i / 4] === 0) imageData.data[i + 3] = 0; }
         ctxTmp.putImageData(imageData, 0, 0);
-        img.src = canvasTmp.toDataURL(); btn.style.display = 'none'; autoSave();
+        img.src = canvasTmp.toDataURL();
+        btn.style.display = 'none';
+        autoSave();
     }
 
-    // --- AI LOGIC ---
-    let activeDraftContent = "";
+    // --- AI LOGIC (CONTEXTUAL) ---
     async function runAi(type, id) {
-        const draftBox = id ? document.getElementById(`draft-${id}`) : document.getElementById(`draft-${type}`);
-        const textBox = id ? document.getElementById(`text-${id}`) : document.getElementById(`text-${type}`);
+        const dBox = id ? document.getElementById(`draft-${id}`) : document.getElementById(`draft-${type}`);
+        const tBox = id ? document.getElementById(`text-${id}`) : document.getElementById(`text-${type}`);
         
         let role = document.getElementById('p_title').value;
         let company = "";
-        if(type === 'experience') {
-            role = document.querySelector(`#exp-${id} .e-role`).value;
-            company = document.querySelector(`#exp-${id} .e-comp`).value;
+        
+        if (type === 'experience') {
+            role = document.querySelector(`#${id} .e-role`).value;
+            company = document.querySelector(`#${id} .e-comp`).value;
+            if (!role) return alert("Please enter the Job Title first.");
         }
         
-        draftBox.style.display = "block";
-        textBox.innerText = "AI is thinking...";
+        dBox.style.display = "block";
+        tBox.innerText = "ProEase AI is analyzing industry standards...";
 
         try {
             const res = await fetch(APPS_SCRIPT_URL, {
@@ -296,25 +416,25 @@
                 body: JSON.stringify({ action: 'aiAssist', type: type, role: role, company: company })
             });
             const data = await res.json();
-            activeDraftContent = data.answer;
-            textBox.innerText = activeDraftContent;
+            activeAiDraft = data.answer;
+            tBox.innerText = activeAiDraft;
         } catch (e) {
-            textBox.innerText = "Error connecting to AI.";
+            tBox.innerText = "Connection error. Please check your internet.";
         }
     }
 
     function applyAi(type, mode, id) {
         const target = id ? document.getElementById(`desc-${id}`) : document.getElementById(`p_${type}`);
-        const draftBox = id ? document.getElementById(`draft-${id}`) : document.getElementById(`draft-${type}`);
+        const dBox = id ? document.getElementById(`draft-${id}`) : document.getElementById(`draft-${type}`);
         
-        if (mode === 'replace') target.value = activeDraftContent;
-        else target.value += (target.value ? "\n\n" : "") + activeDraftContent;
+        if (mode === 'replace') target.value = activeAiDraft;
+        else target.value += (target.value ? "\n\n" : "") + activeAiDraft;
         
-        draftBox.style.display = "none";
+        dBox.style.display = 'none';
         autoSave();
     }
 
-    // --- AUTO SAVE & DRIVE ---
+    // --- AUTO SAVE TO GOOGLE DRIVE ---
     function autoSave() {
         clearTimeout(autoSaveTimeout);
         document.getElementById('save-status').style.display = 'block';
@@ -327,37 +447,41 @@
         document.getElementById('save-status').innerText = "☁️ Syncing to Drive...";
 
         const profile = {
-            personal: {
-                name: document.getElementById('p_name').value,
+            personal: { 
+                name: document.getElementById('p_name').value, 
                 title: document.getElementById('p_title').value,
-                race: document.getElementById('p_race').value,
-                religion: document.getElementById('p_religion').value,
-                nat: document.getElementById('p_nat').value,
-                visa: document.getElementById('p_visa').value,
-                gender: document.getElementById('p_gender').value,
+                email: document.getElementById('p_email').value,
+                phone: document.getElementById('p_phone').value,
+                loc: document.getElementById('p_loc').value,
+                link: document.getElementById('p_link').value,
+                race: document.getElementById('p_race').value, 
+                rel: document.getElementById('p_religion').value, 
+                nat: document.getElementById('p_nat').value, 
+                visa: document.getElementById('p_visa').value, 
+                gen: document.getElementById('p_gender').value, 
                 summary: document.getElementById('p_summary').value,
-                skills: document.getElementById('p_skills').value,
-                photo: document.getElementById('photo-preview').src,
-                sig: canvas.toDataURL()
+                skills: document.getElementById('p_skills').value, 
+                photo: document.getElementById('photo-preview').src, 
+                sig: canvas.toDataURL() 
             },
-            experience: Array.from(document.querySelectorAll('#experience-list .repeater-item')).map(el => ({
-                comp: el.querySelector('.e-comp').value,
-                role: el.querySelector('.e-role').value,
-                dur: el.querySelector('.e-dur').value,
-                desc: el.querySelector('.e-desc').value
+            experience: Array.from(document.querySelectorAll('#experience-list .repeater-item')).map(el => ({ 
+                comp: el.querySelector('.e-comp').value, 
+                role: el.querySelector('.e-role').value, 
+                dur: el.querySelector('.e-dur').value, 
+                desc: el.querySelector('.e-desc').value 
             })),
-            education: Array.from(document.querySelectorAll('#education-list .repeater-item')).map(el => ({
-                school: el.querySelector('.edu-school').value,
-                deg: el.querySelector('.edu-deg').value,
-                year: el.querySelector('.edu-year').value
+            education: Array.from(document.querySelectorAll('#education-list .repeater-item')).map(el => ({ 
+                school: el.querySelector('.edu-school').value, 
+                deg: el.querySelector('.edu-deg').value, 
+                year: el.querySelector('.edu-year').value 
             })),
-            languages: Array.from(document.querySelectorAll('#language-list .row')).map(el => ({
-                name: el.querySelector('.lang-name').value,
-                level: el.querySelector('.lang-level').value
+            languages: Array.from(document.querySelectorAll('#language-list .row')).map(el => ({ 
+                name: el.querySelector('.lang-name').value, 
+                level: el.querySelector('.lang-level').value 
             })),
-            references: Array.from(document.querySelectorAll('#reference-list .repeater-item')).map(el => ({
-                name: el.querySelector('.ref-name').value,
-                contact: el.querySelector('.ref-contact').value
+            references: Array.from(document.querySelectorAll('#reference-list .repeater-item')).map(el => ({ 
+                name: el.querySelector('.ref-name').value, 
+                contact: el.querySelector('.ref-contact').value 
             }))
         };
 
@@ -371,50 +495,64 @@
             : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
 
         const res = await fetch(url, { method: profileFileId ? 'PATCH' : 'POST', headers: { Authorization: `Bearer ${driveToken}` }, body: form });
-        if(res.ok) {
-            document.getElementById('save-status').innerText = "✅ Saved to Drive";
+        
+        if (res.ok) {
+            if (!profileFileId) { // If first save, get the file ID
+                const searchRes = await fetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder', { headers: { Authorization: `Bearer ${driveToken}` } });
+                const searchData = await searchRes.json();
+                const file = searchData.files.find(f => f.name === 'proease_master_profile.json');
+                if (file) profileFileId = file.id;
+            }
+            document.getElementById('save-status').innerText = "✅ Synced to Drive";
             setTimeout(() => { document.getElementById('save-status').style.display = 'none'; }, 2000);
         }
     }
 
-    async function loadProfile() {
+    // --- INIT: LOAD FROM DRIVE ---
+    window.onload = async () => {
+        initCanvas();
+        if (!driveToken) { window.location.href = "index.html"; return; }
+
         const res = await fetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder', {
             headers: { Authorization: `Bearer ${driveToken}` }
         });
         const list = await res.json();
         const file = list.files.find(f => f.name === 'proease_master_profile.json');
         
-        if(file) {
+        if (file) {
             profileFileId = file.id;
-            const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, {
+            const fRes = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, {
                 headers: { Authorization: `Bearer ${driveToken}` }
             });
-            const p = await fileRes.json();
+            const p = await fRes.json();
             
             // Populate Personal
             document.getElementById('p_name').value = p.personal.name || '';
             document.getElementById('p_title').value = p.personal.title || '';
+            document.getElementById('p_email').value = p.personal.email || '';
+            document.getElementById('p_phone').value = p.personal.phone || '';
+            document.getElementById('p_loc').value = p.personal.loc || '';
+            document.getElementById('p_link').value = p.personal.link || '';
             document.getElementById('p_race').value = p.personal.race || '';
-            document.getElementById('p_religion').value = p.personal.religion || '';
+            document.getElementById('p_religion').value = p.personal.rel || '';
             document.getElementById('p_nat').value = p.personal.nat || '';
             document.getElementById('p_visa').value = p.personal.visa || '';
-            document.getElementById('p_gender').value = p.personal.gender || '';
+            document.getElementById('p_gender').value = p.personal.gen || '';
             document.getElementById('p_summary').value = p.personal.summary || '';
             document.getElementById('p_skills').value = p.personal.skills || '';
-            document.getElementById('photo-preview').src = p.personal.photo || '';
-            if(p.personal.sig) { const img = new Image(); img.onload = () => ctx.drawImage(img,0,0); img.src = p.personal.sig; }
+            if (p.personal.photo) document.getElementById('photo-preview').src = p.personal.photo;
+            if (p.personal.sig) { const img = new Image(); img.onload = () => ctx.drawImage(img,0,0); img.src = p.personal.sig; }
             
-            // Populate Repeaters
-            if(p.experience) p.experience.forEach(d => addExperience(d));
-            if(p.education) p.education.forEach(d => addEducation(d));
-            if(p.languages) p.languages.forEach(d => addLanguage(d));
-            if(p.references) p.references.forEach(d => addReference(d));
+            // Populate Lists
+            if (p.experience) p.experience.forEach(e => addExperience(e));
+            if (p.education) p.education.forEach(e => addEducation(e));
+            if (p.languages) p.languages.forEach(e => addLanguage(e));
+            if (p.references) p.references.forEach(e => addReference(e));
         } else {
+            // New Profile Defaults
             addExperience(); addEducation(); addLanguage(); addReference();
         }
-    }
-
-    window.onload = loadProfile;
+    };
 </script>
 </body>
 </html>
