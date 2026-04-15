@@ -1,5 +1,14 @@
 // sidebar.js
 
+// sidebar.js - GLOBAL CONFIGURATION
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2c20JQhD5v-bHsdQassiK6pA3ekHuWyTY63WeiNeCYCL9I0ZizvDus8ouJtNRV6ie/exec";
+
+const APP_CONFIG = {
+    name: "ProEase",
+    version: "V3.2",
+    releaseDate: "April 15, 2026" 
+};
+// ... (rest of the sidebar code remains the same)
 const APP_CONFIG = {
     name: "ProEase",
     version: "V3.2",
