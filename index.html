@@ -155,7 +155,12 @@
                 statusMsg.innerText = "Connection failed. Please refresh.";
             }
         }
-
+        h1 span {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-left: 5px;
+}
         window.onload = function () {
             google.accounts.id.initialize({
                 client_id: CLIENT_ID,
