@@ -2,192 +2,61 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProEase V3.2 | Login</title>
-    
-    <!-- Scripts -->
+    <title>ProEase V3.2 | Secure Login</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
-    
-    <style>
-        :root {
-            --primary: #6366f1; /* Modern Indigo */
-            --bg: #f8fafc;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background-color: var(--bg);
-            background-image: radial-gradient(circle at top right, #e0e7ff, transparent),
-                              radial-gradient(circle at bottom left, #f1f5f9, transparent);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .login-card {
-            background: white;
-            padding: 48px;
-            border-radius: 24px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.8);
-        }
-
-        .logo-icon {
-            width: 60px;
-            height: 60px;
-            background: var(--primary);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 24px;
-            color: white;
-            font-size: 30px;
-            font-weight: bold;
-            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
-        }
-
-        h1 {
-            font-size: 28px;
-            color: var(--text-main);
-            margin: 0 0 8px 0;
-            letter-spacing: -0.5px;
-            display: flex;
-            justify-content: center;
-            align-items: baseline;
-        }
-
-        h1 span {
-            font-size: 14px;
-            font-weight: 400;
-            color: var(--text-muted);
-            margin-left: 8px;
-        }
-
-        p {
-            color: var(--text-muted);
-            margin-bottom: 32px;
-            font-size: 14px;
-        }
-
-        #googleBtn {
-            display: flex;
-            justify-content: center;
-            transition: transform 0.2s ease;
-        }
-
-        #googleBtn:hover {
-            transform: translateY(-2px);
-        }
-
-        #statusMessage {
-            margin-top: 24px;
-            font-size: 14px;
-            min-height: 20px;
-            transition: all 0.3s ease;
-            padding: 10px;
-            border-radius: 8px;
-        }
-
-        .loading-dots:after {
-            content: ' .';
-            animation: dots 1s steps(5, end) infinite;
-        }
-
-        @keyframes dots {
-            0%, 20% { content: ' .'; }
-            40% { content: ' ..'; }
-            60% { content: ' ...'; }
-            80%, 100% { content: ''; }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
-
-   <div class="login-card">
-        <div class="logo-icon">P</div>
-        <h1>ProEase<span>V3.2</span></h1>
-        <p>Released: April 15, 2026</p>
+<body style="display:flex; justify-content:center; align-items:center; height:100vh; background:#f1f5f9; margin:0;">
+    <div class="card" style="width:380px; text-align:center; padding:40px;">
+        <h1 style="margin:0;">ProEase <span style="font-size:14px; font-weight:400; color:#64748b;">V3.2</span></h1>
+        <p style="margin-bottom:30px; font-size:13px; color:#64748b;">Privacy-First Career Intelligence</p>
         
-        <div id="googleBtn"></div>
-        <div id="statusMessage"></div>
+        <div id="googleBtn" style="display:flex; justify-content:center;"></div>
+
+        <div class="privacy-shield" style="margin-top:30px; text-align:left;">
+            <strong>🔒 Zero-Knowledge Privacy Architecture</strong>
+            ProEase is engineered with a Decentralized Data Philosophy. All personal details and professional history are saved exclusively within your own Google Drive. Our servers do not host or have access to your personal files.
+        </div>
+        <p id="statusMsg" style="margin-top:15px; font-size:12px;"></p>
     </div>
 
     <script>
         const CLIENT_ID = "883425754646-qdtov35q7ud513ed0ugame8042n46uof.apps.googleusercontent.com";
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwm5s2_MpaSBrf3TtuQRiPnBHRKN94E6ac0p1jd1OnWcGOmf6IzjlNGbpVNvbN0sJRw/exec";
-
-        async function handleCredentialResponse(response) {
-            const statusMsg = document.getElementById('statusMessage');
-            statusMsg.innerHTML = '<span class="loading-dots">Verifying credentials</span>';
-            statusMsg.style.color = "#6366f1";
-
-            try {
-                // Initialize FingerprintJS
-                const fpPromise = FingerprintJS.load();
-                const fp = await fpPromise;
-                const result = await fp.get();
-                const deviceId = result.visitorId;
-
-                // Decode Google Token
-                const base64Url = response.credential.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const payload = JSON.parse(window.atob(base64));
-
-                // Send to Apps Script
-                const apiRes = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'login',
-                        email: payload.email,
-                        deviceId: deviceId
-                    })
-                });
-
-                const apiResult = await apiRes.json();
-
-                if (apiResult.success) {
-                    statusMsg.style.background = "#ecfdf5";
-                    statusMsg.style.color = "#059669";
-                    statusMsg.innerText = "Access Granted. Redirecting...";
-                    
-                    // Save User Data
-                    localStorage.setItem('user', JSON.stringify(apiResult.user));
-                    
-                    // Redirect to Dashboard
-                    setTimeout(() => { 
-                        window.location.href = "dashboard.html"; 
-                    }, 1500);
-                } else {
-                    statusMsg.style.background = "#fef2f2";
-                    statusMsg.style.color = "#dc2626";
-                    statusMsg.innerText = apiResult.message;
-                }
-            } catch (error) {
-                statusMsg.style.color = "red";
-                statusMsg.innerText = "Connection failed. Please refresh.";
-                console.error(error);
-            }
-        }
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUC1-lJTGxSoG8mHZ4J9l948Kf1Ekk8UUKVyyq2EsyOeOhdpNPdTvpS05LUOl4ib_K/exec";
+        let tokenClient;
 
         window.onload = function () {
-            google.accounts.id.initialize({
+            tokenClient = google.accounts.oauth2.initTokenClient({
                 client_id: CLIENT_ID,
-                callback: handleCredentialResponse
+                scope: 'https://www.googleapis.com/auth/drive.appdata',
+                callback: (tokenRes) => {
+                    localStorage.setItem('drive_token', tokenRes.access_token);
+                    window.location.href = "dashboard.html";
+                },
             });
-            google.accounts.id.renderButton(
-                document.getElementById("googleBtn"),
-                { theme: "outline", size: "large", width: "300", shape: "pill", logo_alignment: "left" }
-            );
+            google.accounts.id.initialize({ client_id: CLIENT_ID, callback: handleLogin });
+            google.accounts.id.renderButton(document.getElementById("googleBtn"), { theme: "outline", size: "large", shape: "pill" });
         };
+
+        async function handleLogin(res) {
+            document.getElementById('statusMsg').innerText = "Authenticating...";
+            const fp = await FingerprintJS.load();
+            const fpRes = await fp.get();
+            const payload = JSON.parse(atob(res.credential.split('.')[1]));
+
+            const apiRes = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'login', email: payload.email, deviceId: fpRes.visitorId })
+            });
+            const result = await apiRes.json();
+            if (result.success) {
+                localStorage.setItem('user', JSON.stringify(result.user));
+                tokenClient.requestAccessToken(); 
+            } else {
+                alert(result.message);
+            }
+        }
     </script>
 </body>
 </html>
