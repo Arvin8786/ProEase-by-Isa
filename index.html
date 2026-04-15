@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Career AI | Login</title>
+    <title>ProEase V3.2 | Login</title>
     
+    <!-- Scripts -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
     
@@ -59,12 +60,22 @@
             color: var(--text-main);
             margin: 0 0 8px 0;
             letter-spacing: -0.5px;
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+        }
+
+        h1 span {
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-left: 8px;
         }
 
         p {
             color: var(--text-muted);
             margin-bottom: 32px;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         #googleBtn {
@@ -102,13 +113,13 @@
 <body>
 
    <div class="login-card">
-    <div class="logo-icon">P</div>
-    <h1>ProEase<span> V3.2</span></h1>
-    <p>Released: April 15, 2026</p>
-    
-    <div id="googleBtn"></div>
-    <div id="statusMessage"></div>
-</div>
+        <div class="logo-icon">P</div>
+        <h1>ProEase<span>V3.2</span></h1>
+        <p>Released: April 15, 2026</p>
+        
+        <div id="googleBtn"></div>
+        <div id="statusMessage"></div>
+    </div>
 
     <script>
         const CLIENT_ID = "883425754646-qdtov35q7ud513ed0ugame8042n46uof.apps.googleusercontent.com";
@@ -120,15 +131,18 @@
             statusMsg.style.color = "#6366f1";
 
             try {
+                // Initialize FingerprintJS
                 const fpPromise = FingerprintJS.load();
                 const fp = await fpPromise;
                 const result = await fp.get();
                 const deviceId = result.visitorId;
 
+                // Decode Google Token
                 const base64Url = response.credential.split('.')[1];
                 const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
                 const payload = JSON.parse(window.atob(base64));
 
+                // Send to Apps Script
                 const apiRes = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({
@@ -144,23 +158,26 @@
                     statusMsg.style.background = "#ecfdf5";
                     statusMsg.style.color = "#059669";
                     statusMsg.innerText = "Access Granted. Redirecting...";
+                    
+                    // Save User Data
                     localStorage.setItem('user', JSON.stringify(apiResult.user));
-                    setTimeout(() => { window.location.href = "dashboard.html"; }, 1500);
+                    
+                    // Redirect to Dashboard
+                    setTimeout(() => { 
+                        window.location.href = "dashboard.html"; 
+                    }, 1500);
                 } else {
                     statusMsg.style.background = "#fef2f2";
                     statusMsg.style.color = "#dc2626";
                     statusMsg.innerText = apiResult.message;
                 }
             } catch (error) {
+                statusMsg.style.color = "red";
                 statusMsg.innerText = "Connection failed. Please refresh.";
+                console.error(error);
             }
         }
-        h1 span {
-    font-size: 14px;
-    font-weight: 400;
-    color: var(--text-muted);
-    margin-left: 5px;
-}
+
         window.onload = function () {
             google.accounts.id.initialize({
                 client_id: CLIENT_ID,
