@@ -1,1 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>System Admin | Career AI</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-card { background: white; padding: 25px; border-radius: 15px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
+        th { background: #f8fafc; color: #64748b; }
+        .tab-btn { padding: 10px 20px; cursor: pointer; border: none; background: #e2e8f0; border-radius: 5px; margin-right: 10px; font-weight: 600; }
+        .tab-btn.active { background: var(--primary); color: white; }
+        .status-pill { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        .status-Blocked { background: #fee2e2; color: #dc2626; }
+        .status-Free { background: #f1f5f9; color: #475569; }
+        .status-Pro { background: #e0e7ff; color: #4f46e5; }
+        input[type="text"], input[type="number"], select { padding: 5px; border: 1px solid #ddd; border-radius: 4px; }
+    </style>
+</head>
+<body>
 
+<div class="main">
+    <h1>System Administration</h1>
+    <div style="margin-bottom: 30px;">
+        <button class="tab-btn active" onclick="showTab('users')">User Management</button>
+        <button class="tab-btn" onclick="showTab('settings')">Feature Limits & Tiers</button>
+    </div>
+
+    <!-- TAB 1: USER MANAGEMENT -->
+    <div id="usersTab" class="admin-card">
+        <h3>Registered Users</h3>
+        <table id="userTable">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Expiry</th>
+                    <th>Approval ID</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody><!-- Loaded by JS --></tbody>
+        </table>
+    </div>
+
+    <!-- TAB 2: SUBSCRIPTION SETTINGS -->
+    <div id="settingsTab" class="admin-card" style="display:none">
+        <h3>Feature Access & Limits</h3>
+        <p>Edit limits for each tier. Use '999' for unlimited.</p>
+        <table id="settingsTable">
+            <thead><!-- Loaded by JS --></thead>
+            <tbody><!-- Loaded by JS --></tbody>
+        </table>
+        <button class="action-btn" onclick="saveSettings()" style="margin-top:20px; width: 200px;">Save All Limits</button>
+    </div>
+</div>
+
+<script src="sidebar.js"></script>
+<script>
+    const APPS_SCRIPT_URL = "YOUR_APPS_SCRIPT_URL_HERE";
+    const adminUser = JSON.parse(localStorage.getItem('user'));
+
+    if (adminUser.role !== "Admin") {
+        alert("Access Denied");
+        window.location.href = "dashboard.html";
+    }
+
+    function showTab(tab) {
+        document.getElementById('usersTab').style.display = tab === 'users' ? 'block' : 'none';
+        document.getElementById('settingsTab').style.display = tab === 'settings' ? 'block' : 'none';
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        if(tab === 'users') loadUsers(); else loadSettings();
+    }
+
+    async function loadUsers() {
+        const res = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'admin_getUsers', adminEmail: adminUser.email })
+        });
+        const result = await res.json();
+        const tbody = document.querySelector('#userTable tbody');
+        tbody.innerHTML = "";
+        
+        // Skip header row i=1
+        for (let i = 1; i < result.data.length; i++) {
+            const row = result.data[i];
+            tbody.innerHTML += `
+                <tr>
+                    <td>${row[0]}</td>
+                    <td>${row[1]}</td>
+                    <td><span class="status-pill status-${row[3]}">${row[3]}</span></td>
+                    <td>${row[6] || 'N/A'}</td>
+                    <td>${row[8]}</td>
+                    <td>
+                        <button onclick="updateUser('${row[0]}', 'Blocked')">Block</button>
+                        <button onclick="upgradeUserPrompt('${row[0]}')">Upgrade</button>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    async function updateUser(userId, status) {
+        if(!confirm("Confirm change for " + userId + "?")) return;
+        await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ 
+                action: 'admin_updateUser', 
+                adminEmail: adminUser.email,
+                targetUserId: userId,
+                status: status
+            })
+        });
+        loadUsers();
+    }
+
+    function upgradeUserPrompt(userId) {
+        const tier = prompt("Enter Tier (Pro/Premium):", "Pro");
+        const approval = prompt("Enter Approval/Transaction ID:");
+        const expiry = prompt("Enter Expiry Date (YYYY-MM-DD):", "2025-12-31");
+        if(tier && approval) {
+            submitUpgrade(userId, tier, approval, expiry);
+        }
+    }
+
+    async function submitUpgrade(userId, tier, approval, expiry) {
+        await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ 
+                action: 'admin_updateUser', 
+                adminEmail: adminUser.email,
+                targetUserId: userId,
+                status: tier,
+                approvalId: approval,
+                expiry: expiry,
+                amount: tier === "Pro" ? "Pro - RM 10/Month" : "Premium - RM 20/Month"
+            })
+        });
+        loadUsers();
+    }
+
+    // Settings Logic (Tab 2)
+    let currentSettingsRaw = [];
+    async function loadSettings() {
+        const res = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'admin_getSettings', adminEmail: adminUser.email })
+        });
+        const result = await res.json();
+        currentSettingsRaw = result.data;
+        const table = document.getElementById('settingsTable');
+        
+        let html = "<thead><tr>";
+        result.data[0].forEach(h => html += `<th>${h}</th>`);
+        html += "</tr></thead><tbody>";
+
+        for (let i = 1; i < result.data.length; i++) {
+            html += "<tr>";
+            result.data[i].forEach((cell, j) => {
+                if (j === 0) html += `<td>${cell}</td>`; // Feature Name
+                else if ([1,3,5].includes(j)) { // Tickboxes
+                    html += `<td><input type="checkbox" ${cell === true ? 'checked' : ''} onchange="updateLocalSetting(${i},${j},this.checked)"></td>`;
+                } else { // Limits
+                    html += `<td><input type="number" value="${cell}" style="width:60px" onchange="updateLocalSetting(${i},${j},this.value)"></td>`;
+                }
+            });
+            html += "</tr>";
+        }
+        table.innerHTML = html + "</tbody>";
+    }
+
+    function updateLocalSetting(r, c, val) {
+        currentSettingsRaw[r][c] = val;
+    }
+
+    async function saveSettings() {
+        const res = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ 
+                action: 'admin_updateSettings', 
+                adminEmail: adminUser.email,
+                settings: currentSettingsRaw
+            })
+        });
+        const result = await res.json();
+        alert(result.message);
+    }
+
+    window.onload = loadUsers;
+</script>
+</body>
+</html>
