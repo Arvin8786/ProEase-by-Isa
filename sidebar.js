@@ -40,22 +40,21 @@ document.addEventListener("DOMContentLoaded", function() {
 
     document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
 
-    // Highlight active page
-    const currentPage = window.location.pathname.split("/").pop();
-    const navMap = {
+    // Auto-highlight active link
+    const path = window.location.pathname.split("/").pop();
+    const activeMap = {
         "dashboard.html": "nav-dashboard",
         "profile-parser.html": "nav-profile",
         "resume-builder.html": "nav-resume",
-        "mock-interview.html": "nav-interview",
         "cover-letter.html": "nav-cover",
         "resignation-gen.html": "nav-resign",
         "form-filler.html": "nav-form",
+        "mock-interview.html": "nav-interview",
         "ats-checker.html": "nav-ats",
         "linkedin-auditor.html": "nav-linkedin",
         "job-tracker.html": "nav-tracker"
     };
-    const activeId = navMap[currentPage];
-    if (activeId) document.getElementById(activeId).classList.add("active");
+    if(activeMap[path]) document.getElementById(activeMap[path]).classList.add("active");
 });
 
 function logout() {
