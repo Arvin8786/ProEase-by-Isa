@@ -26,4 +26,4 @@ body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); displ
 .action-btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; width: 100%; font-weight: 600; }
 
 .admin-section { display: none; margin-top: 20px; border-top: 1px solid #334155; padding-top: 15px; }
-.logout-btn { background: none; border: none; color: #f87171; cursor: pointer; padding: 10px 15px; font-weight: 600; text-align: left; width: 100%; margin-top: 20px;}
+.logout-btn { background: none; border: none; color: #f87171; cursor: pointer; padding: 10px 15px; font-weight: 600; text-align: left; width: 100%; margin-top: 20px;} 
