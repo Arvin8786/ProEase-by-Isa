@@ -27,3 +27,9 @@ body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); displ
 
 .admin-section { display: none; margin-top: 20px; border-top: 1px solid #334155; padding-top: 15px; }
 .logout-btn { background: none; border: none; color: #f87171; cursor: pointer; padding: 10px 15px; font-weight: 600; text-align: left; width: 100%; margin-top: 20px;} 
+h1 span {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-left: 5px;
+}
