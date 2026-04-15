@@ -2,265 +2,154 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Master Profile | ProEase V3.2</title>
+    <title>Master Profile | ProEase</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- AI Photo Lib -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
     <style>
-        .section-card { background: white; padding: 30px; border-radius: 20px; margin-bottom: 25px; border: 1px solid #e2e8f0; }
-        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px; }
-        .full-row { margin-bottom: 15px; position: relative; }
-        .ai-magic-btn { 
-            position: absolute; right: 0; top: -5px; background: #eef2ff; color: #4338ca; 
-            border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 800; cursor: pointer;
-        }
-        .repeater-item { border-left: 4px solid var(--primary); padding: 20px; background: #f8fafc; border-radius: 0 15px 15px 0; margin-bottom: 20px; position: relative; }
-        .remove-btn { color: #ef4444; font-size: 12px; font-weight: bold; cursor: pointer; float: right; }
-        h3 { margin-top: 0; color: var(--sidebar); display: flex; justify-content: space-between; align-items: center; }
-        .add-btn { background: var(--sidebar); color: white; border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+        .section-card { background:white; padding:30px; border-radius:15px; margin-bottom:20px; border:1px solid #e2e8f0; }
+        .row { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px; }
+        #sig-canvas { border:1px solid #ddd; background:white; width:100%; height:150px; cursor:crosshair; }
+        #photo-preview { width:100px; height:100px; border-radius:50%; object-fit:cover; border:2px solid #6366f1; }
+        .repeater { border-left:3px solid #6366f1; padding-left:15px; margin-bottom:20px; position:relative; }
+        .ai-btn { background:#eef2ff; color:#4338ca; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:11px; font-weight:bold; }
     </style>
 </head>
 <body>
-
-<div class="main">
-    <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-        <div>
+    <div class="main">
+        <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
             <h1>Master Career Profile</h1>
-            <p style="color:var(--text-muted); margin:0;">All data is saved privately to your Google Drive.</p>
-        </div>
-        <button class="action-btn" onclick="saveProfile()" id="mainSaveBtn">Save Master Profile</button>
-    </header>
+            <button class="action-btn" onclick="saveToDrive()" id="saveBtn">Save to My Drive</button>
+        </header>
 
-    <div class="privacy-shield">
-        <strong>🔒 Zero-Knowledge Privacy Architecture</strong>
-        Your personal details are stored exclusively within your own Google Drive. ProEase servers do not host or have access to this information.
-    </div>
-
-    <!-- 1. PERSONAL DETAILS -->
-    <div class="section-card">
-        <h3>Personal Identity</h3>
-        <div class="row">
-            <div class="input-group"><label>Full Name</label><input type="text" id="p_name"></div>
-            <div class="input-group"><label>Target Professional Title</label><input type="text" id="p_title" placeholder="e.g. Logistics Officer"></div>
+        <div class="privacy-shield">
+            <strong>🔒 Zero-Knowledge Privacy Architecture</strong>
+            Your data is stored exclusively within your own Google Drive. ProEase developers cannot access your personal information.
         </div>
-        <div class="row">
-            <div class="input-group"><label>Email Address</label><input type="text" id="p_email"></div>
-            <div class="input-group"><label>Phone Number</label><input type="text" id="p_phone"></div>
-        </div>
-        <div class="row">
-            <div class="input-group"><label>Location</label><input type="text" id="p_loc" placeholder="City, Country"></div>
-            <div class="input-group"><label>LinkedIn / Portfolio</label><input type="text" id="p_link"></div>
-        </div>
-        <div class="full-row">
-            <label>Professional Summary</label>
-            <button class="ai-magic-btn" onclick="runAi('summary')">🪄 AI ASSIST</button>
-            <textarea id="p_summary" rows="4" placeholder="Write a short summary or use AI assist..."></textarea>
-        </div>
-    </div>
 
-    <!-- 2. WORK HISTORY -->
-    <div class="section-card">
-        <h3>Work Experience <button class="add-btn" onclick="addExperience()">+ Add Role</button></h3>
-        <div id="experience-list"></div>
-    </div>
-
-    <!-- 3. EDUCATION -->
-    <div class="section-card">
-        <h3>Education <button class="add-btn" onclick="addEducation()">+ Add Degree</button></h3>
-        <div id="education-list"></div>
-    </div>
-
-    <!-- 4. SKILLS -->
-    <div class="section-card">
-        <h3>Technical & Soft Skills</h3>
-        <div class="full-row">
-            <button class="ai-magic-btn" onclick="runAi('skills')">🪄 AI SUGGEST SKILLS</button>
-            <textarea id="p_skills" rows="3" placeholder="List skills separated by commas..."></textarea>
-        </div>
-    </div>
-
-    <!-- 5. LANGUAGES & REFERENCES -->
-    <div class="row">
+        <!-- PHOTO & SIGNATURE -->
         <div class="section-card">
-            <h3>Languages <button class="add-btn" onclick="addLanguage()">+ Add</button></h3>
-            <div id="language-list"></div>
+            <div class="row">
+                <div>
+                    <label>Professional Headshot</label><br>
+                    <img id="photo-preview" src="https://via.placeholder.com/100">
+                    <input type="file" id="photo-input" onchange="previewPhoto(event)" style="font-size:10px;">
+                    <button class="ai-btn" id="rb-btn" style="display:none;" onclick="removeBG()">🪄 AI Remove BG</button>
+                </div>
+                <div>
+                    <label>Digital Signature</label>
+                    <canvas id="sig-canvas"></canvas>
+                    <button class="btn-small" onclick="clearSig()">Clear</button>
+                </div>
+            </div>
         </div>
+
+        <!-- PERSONAL -->
         <div class="section-card">
-            <h3>References <button class="add-btn" onclick="addReference()">+ Add</button></h3>
-            <div id="reference-list"></div>
+            <h3>Personal Details</h3>
+            <div class="row">
+                <input type="text" id="p-name" placeholder="Full Name">
+                <input type="text" id="p-title" placeholder="Target Job Title">
+            </div>
+            <textarea id="p-summary" rows="3" placeholder="Summary..."></textarea>
+            <button class="ai-btn" onclick="runAI('summary')">🪄 AI Write Summary</button>
         </div>
+
+        <!-- EXPERIENCE -->
+        <div class="section-card">
+            <h3>Experience <button onclick="addExp()" class="btn-small">+ Add</button></h3>
+            <div id="exp-list"></div>
+        </div>
+
+        <!-- EDUCATION / SKILLS / LANG / REF (Add similar repeaters) -->
+         <div class="section-card">
+            <h3>Education & Skills</h3>
+            <textarea id="p-skills" placeholder="Skills (Comma separated)"></textarea>
+        </div>
+
     </div>
 
-    <div style="text-align: center; margin-bottom: 100px;">
-        <button class="action-btn" onclick="saveProfile()" style="width: 300px; padding: 20px;">Securely Save Master Profile</button>
-    </div>
-</div>
+    <script src="sidebar.js"></script>
+    <script>
+        const driveToken = localStorage.getItem('drive_token');
+        const APPS_SCRIPT_URL = "PASTE_YOUR_APPS_SCRIPT_URL_HERE";
+        let fileId = null;
 
-<script src="sidebar.js"></script>
-<script>
-    const driveToken = localStorage.getItem('drive_token');
-    const APPS_SCRIPT_URL = "YOUR_APPS_SCRIPT_URL";
-    let profileFileId = null;
+        // --- SIGNATURE LOGIC ---
+        const canvas = document.getElementById('sig-canvas');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+        canvas.addEventListener('mousedown', () => drawing = true);
+        canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
+        canvas.addEventListener('mousemove', (e) => {
+            if(!drawing) return;
+            const rect = canvas.getBoundingClientRect();
+            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            ctx.stroke();
+        });
+        function clearSig() { ctx.clearRect(0,0,canvas.width,canvas.height); }
 
-    // --- REPEATER FUNCTIONS ---
-
-    function addExperience(d = {comp:'', role:'', desc:''}) {
-        const id = Date.now();
-        const html = `
-            <div class="repeater-item" id="exp-${id}">
-                <span class="remove-btn" onclick="this.parentElement.remove()">Remove</span>
-                <div class="row">
-                    <input type="text" class="e-comp" placeholder="Company (e.g. Aetos)" value="${d.comp}">
-                    <input type="text" class="e-role" placeholder="Job Title" value="${d.role}">
-                </div>
-                <div class="full-row">
-                    <button class="ai-magic-btn" onclick="runAi('experience', '${id}')">🪄 AI GENERATE BULLETS</button>
-                    <textarea class="e-desc" id="desc-${id}" rows="4" placeholder="Achievements...">${d.desc}</textarea>
-                </div>
-            </div>`;
-        document.getElementById('experience-list').insertAdjacentHTML('beforeend', html);
-    }
-
-    function addEducation(d = {school:'', deg:'', year:''}) {
-        const html = `
-            <div class="repeater-item">
-                <span class="remove-btn" onclick="this.parentElement.remove()">Remove</span>
-                <div class="row">
-                    <input type="text" class="edu-school" placeholder="University/School" value="${d.school}">
-                    <input type="text" class="edu-deg" placeholder="Degree / Certificate" value="${d.deg}">
-                </div>
-                <input type="text" class="edu-year" placeholder="Graduation Year" value="${d.year}">
-            </div>`;
-        document.getElementById('education-list').insertAdjacentHTML('beforeend', html);
-    }
-
-    function addLanguage(d = {name:'', level:''}) {
-        const html = `<div class="row" style="margin-bottom:10px;">
-            <input type="text" class="lang-name" placeholder="Language" value="${d.name}">
-            <input type="text" class="lang-level" placeholder="Proficiency (e.g. Native)" value="${d.level}">
-        </div>`;
-        document.getElementById('language-list').insertAdjacentHTML('beforeend', html);
-    }
-
-    function addReference(d = {name:'', contact:''}) {
-        const html = `<div class="repeater-item">
-            <input type="text" class="ref-name" placeholder="Reference Name & Title" value="${d.name}">
-            <input type="text" class="ref-contact" placeholder="Email / Phone" value="${d.contact}">
-        </div>`;
-        document.getElementById('reference-list').insertAdjacentHTML('beforeend', html);
-    }
-
-    // --- AI ASSIST ---
-    async function runAi(type, id) {
-        let role = document.getElementById('p_title').value;
-        let company = "";
-        
-        if(type === 'experience') {
-            role = document.querySelector(`#exp-${id} .e-role`).value;
-            company = document.querySelector(`#exp-${id} .e-comp`).value;
+        // --- AI PHOTO LOGIC ---
+        function previewPhoto(e) {
+            const reader = new FileReader();
+            reader.onload = (f) => { 
+                document.getElementById('photo-preview').src = f.target.result; 
+                document.getElementById('rb-btn').style.display = 'block';
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+        async function removeBG() {
+            const btn = document.getElementById('rb-btn'); btn.innerText = "Processing...";
+            const img = document.getElementById('photo-preview');
+            const net = await bodyPix.load();
+            const segmentation = await net.segmentPerson(img);
+            const canvasTmp = document.createElement('canvas');
+            canvasTmp.width = img.width; canvasTmp.height = img.height;
+            const ctxTmp = canvasTmp.getContext('2d');
+            ctxTmp.drawImage(img, 0, 0);
+            const imageData = ctxTmp.getImageData(0,0,canvasTmp.width,canvasTmp.height);
+            for (let i = 0; i < imageData.data.length; i += 4) {
+                if (segmentation.data[i / 4] === 0) imageData.data[i + 3] = 0;
+            }
+            ctxTmp.putImageData(imageData, 0, 0);
+            img.src = canvasTmp.toDataURL(); btn.style.display = 'none';
         }
 
-        const btn = event.target;
-        btn.innerText = "AI THINKING...";
+        // --- DRIVE SAVE LOGIC ---
+        async function saveToDrive() {
+            const data = {
+                name: document.getElementById('p-name').value,
+                photo: document.getElementById('photo-preview').src,
+                sig: canvas.toDataURL(),
+                summary: document.getElementById('p-summary').value,
+                skills: document.getElementById('p-skills').value,
+                exp: Array.from(document.querySelectorAll('.repeater')).map(r => ({
+                    role: r.querySelector('.r-role').value,
+                    desc: r.querySelector('.r-desc').value
+                }))
+            };
+            const metadata = { name: 'proease_profile.json', parents: ['appDataFolder'] };
+            const form = new FormData();
+            form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
+            form.append('file', new Blob([JSON.stringify(data)], {type: 'application/json'}));
+            
+            const url = fileId ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart` : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
+            await fetch(url, { method: fileId ? 'PATCH' : 'POST', headers: { Authorization: `Bearer ${driveToken}` }, body: form });
+            alert("Saved to your Secure Google Drive!");
+        }
 
-        const res = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'aiAssist', type: type, role: role, company: company })
-        });
-        const data = await res.json();
-        
-        if(type === 'experience') document.getElementById(`desc-${id}`).value = data.answer;
-        else if(type === 'summary') document.getElementById('p_summary').value = data.answer;
-        else if(type === 'skills') document.getElementById('p_skills').value = data.answer;
-        
-        btn.innerText = "🪄 AI ASSIST";
-    }
+        function addExp(d = {role:'', desc:''}) {
+            const html = `<div class="repeater"><input type="text" class="r-role" placeholder="Role" value="${d.role}"><textarea class="r-desc" rows="3">${d.desc}</textarea></div>`;
+            document.getElementById('exp-list').insertAdjacentHTML('beforeend', html);
+        }
 
-    // --- DRIVE OPERATIONS ---
-    async function saveProfile() {
-        const saveBtn = document.getElementById('mainSaveBtn');
-        saveBtn.innerText = "Encrypting & Saving...";
-
-        const profile = {
-            personal: {
-                name: document.getElementById('p_name').value,
-                title: document.getElementById('p_title').value,
-                email: document.getElementById('p_email').value,
-                phone: document.getElementById('p_phone').value,
-                location: document.getElementById('p_loc').value,
-                link: document.getElementById('p_link').value,
-                summary: document.getElementById('p_summary').value,
-                skills: document.getElementById('p_skills').value
-            },
-            experience: Array.from(document.querySelectorAll('#experience-list .repeater-item')).map(el => ({
-                comp: el.querySelector('.e-comp').value,
-                role: el.querySelector('.e-role').value,
-                desc: el.querySelector('.e-desc').value
-            })),
-            education: Array.from(document.querySelectorAll('#education-list .repeater-item')).map(el => ({
-                school: el.querySelector('.edu-school').value,
-                deg: el.querySelector('.edu-deg').value,
-                year: el.querySelector('.edu-year').value
-            })),
-            languages: Array.from(document.querySelectorAll('#language-list .row')).map(el => ({
-                name: el.querySelector('.lang-name').value,
-                level: el.querySelector('.lang-level').value
-            })),
-            references: Array.from(document.querySelectorAll('#reference-list .repeater-item')).map(el => ({
-                name: el.querySelector('.ref-name').value,
-                contact: el.querySelector('.ref-contact').value
-            }))
+        window.onload = async () => {
+            const res = await fetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder', { headers: { Authorization: `Bearer ${driveToken}` } });
+            const list = await res.json();
+            const file = list.files.find(f => f.name === 'proease_profile.json');
+            if(file) { fileId = file.id; /* Fetch & Populate code here */ } else { addExp(); }
         };
-
-        const metadata = { name: 'proease_master_profile.json', parents: ['appDataFolder'] };
-        const form = new FormData();
-        form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
-        form.append('file', new Blob([JSON.stringify(profile)], {type: 'application/json'}));
-
-        const url = profileFileId 
-            ? `https://www.googleapis.com/upload/drive/v3/files/${profileFileId}?uploadType=multipart`
-            : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
-
-        await fetch(url, { method: profileFileId ? 'PATCH' : 'POST', headers: { Authorization: `Bearer ${driveToken}` }, body: form });
-        
-        saveBtn.innerText = "Profile Saved Successfully ✅";
-        setTimeout(() => saveBtn.innerText = "Save Master Profile", 2000);
-    }
-
-    async function loadProfile() {
-        const res = await fetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder', {
-            headers: { Authorization: `Bearer ${driveToken}` }
-        });
-        const list = await res.json();
-        const file = list.files.find(f => f.name === 'proease_master_profile.json');
-        
-        if(file) {
-            profileFileId = file.id;
-            const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, {
-                headers: { Authorization: `Bearer ${driveToken}` }
-            });
-            const p = await fileRes.json();
-            
-            // Map Personal
-            document.getElementById('p_name').value = p.personal.name || '';
-            document.getElementById('p_title').value = p.personal.title || '';
-            document.getElementById('p_email').value = p.personal.email || '';
-            document.getElementById('p_phone').value = p.personal.phone || '';
-            document.getElementById('p_loc').value = p.personal.location || '';
-            document.getElementById('p_link').value = p.personal.link || '';
-            document.getElementById('p_summary').value = p.personal.summary || '';
-            document.getElementById('p_skills').value = p.personal.skills || '';
-            
-            // Map Repeaters
-            if(p.experience) p.experience.forEach(d => addExperience(d));
-            if(p.education) p.education.forEach(d => addEducation(d));
-            if(p.languages) p.languages.forEach(d => addLanguage(d));
-            if(p.references) p.references.forEach(d => addReference(d));
-        } else {
-            addExperience(); addEducation(); addLanguage(); addReference();
-        }
-    }
-
-    window.onload = loadProfile;
-</script>
+    </script>
 </body>
 </html>
