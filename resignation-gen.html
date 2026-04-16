@@ -3,81 +3,320 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feature Loading | Career AI</title>
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <!-- Shared Styles -->
+    <title>Resignation Generator | ProEase V3.2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
-        .dev-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 70vh;
+        /* Specific Styles for Resignation Module */
+        .split-view { 
+            display: grid; 
+            grid-template-columns: 420px 1fr; 
+            gap: 30px; 
+            align-items: start;
+        }
+
+        .control-panel { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 20px; 
+            border: 1px solid #e2e8f0; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 20px;
+        }
+
+        /* The Professional Paper Preview */
+        .letter-paper { 
+            background: white; 
+            padding: 60px 80px; 
+            border-radius: 5px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+            min-height: 800px; 
+            font-family: 'Times New Roman', Times, serif; 
+            font-size: 16px;
+            line-height: 1.6;
+            color: #000;
+            white-space: pre-wrap;
+            border: 1px solid #e2e8f0;
+        }
+
+        .date-alert {
+            background: #fffbeb;
+            border: 1px solid #fef3c7;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 20px 0;
             text-align: center;
         }
-        .dev-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-            background: #e0e7ff;
-            width: 120px;
-            height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            color: var(--primary);
-        }
-        .badge-soon {
-            background: #fef3c7;
+
+        .date-alert strong {
+            display: block;
+            font-size: 18px;
             color: #92400e;
-            padding: 6px 16px;
-            border-radius: 20px;
+        }
+
+        .ai-status {
             font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 15px;
+            font-weight: 700;
+            color: #6366f1;
+            margin-top: 5px;
+            display: none;
         }
-        h1 { font-size: 32px; margin: 10px 0; color: var(--sidebar); }
-        p { color: #64748b; max-width: 450px; line-height: 1.6; }
-        .back-btn {
-            margin-top: 30px;
-            background: white;
-            border: 1px solid #ddd;
-            padding: 12px 24px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
+
+        @media print {
+            .sidebar, .control-panel, header, #save-status { display: none !important; }
+            .main { margin: 0 !important; padding: 0 !important; }
+            .letter-paper { box-shadow: none !important; border: none !important; padding: 0 !important; width: 100% !important; }
         }
-        .back-btn:hover { background: #f8f9fa; border-color: #bbb; }
     </style>
 </head>
 <body>
 
-    <div class="main">
-        <div class="dev-container">
-            <div class="badge-soon">In Development</div>
-            <div class="dev-icon">⚙️</div>
-            <h1 id="featureName">Building Feature...</h1>
-            <p>Our AI engineers are currently training the models for this module to ensure the highest quality results. This feature will be available in the next update.</p>
-            
-            <button class="back-btn" onclick="location.href='dashboard.html'">← Back to Overview</button>
+<div class="main">
+    <header style="margin-bottom: 30px;">
+        <h1>Resignation Generator</h1>
+        <p style="color:#64748b;">Generate a professional exit notice based on your profile data.</p>
+    </header>
+
+    <div class="split-view">
+        <!-- LEFT: CONTROLS -->
+        <div class="control-panel">
+            <div class="input-group">
+                <label>Select Job to Resign From</label>
+                <select id="job-selector" onchange="updatePreview()">
+                    <option value="">-- Loading Jobs --</option>
+                </select>
+            </div>
+
+            <div class="row">
+                <div class="input-group">
+                    <label>Notice Period</label>
+                    <select id="notice-period" onchange="calculateDate()">
+                        <option value="7">7 Days</option>
+                        <option value="14">2 Weeks</option>
+                        <option value="30" selected>1 Month</option>
+                        <option value="90">3 Months</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Resignation Date</label>
+                    <input type="date" id="resign-date" onchange="calculateDate()">
+                </div>
+            </div>
+
+            <div class="date-alert">
+                <span style="font-size: 11px; text-transform: uppercase; color: #b45309; font-weight: 800;">Official Last Working Day</span>
+                <strong id="final-date-display">...</strong>
+            </div>
+
+            <div class="input-group" style="position: relative;">
+                <label>Reason for Resignation</label>
+                <button class="btn-small" style="position:absolute; right:0; top:-5px; background:#e0e7ff; color:#4338ca;" onclick="professionalizeReason()">🪄 AI Professionalize</button>
+                <textarea id="raw-reason" rows="4" placeholder="e.g. Better salary at another company..." oninput="updatePreview()"></textarea>
+                <div id="ai-loading" class="ai-status">AI is analyzing and rewriting...</div>
+            </div>
+
+            <button class="action-btn" style="width:100%; margin-top:20px;" onclick="generateFullLetter()">🪄 Generate AI Formal Letter</button>
+            <button class="action-btn" style="width:100%; margin-top:10px; background:#0f172a;" onclick="window.print()">🖨️ Print / Save PDF</button>
+        </div>
+
+        <!-- RIGHT: PREVIEW -->
+        <div id="letter-preview" class="letter-paper">
+            Loading your profile credentials...
         </div>
     </div>
+</div>
 
-    <!-- Shared Sidebar Script -->
-    <script src="sidebar.js"></script>
-    
-    <script>
-        // Simple script to show the current feature name based on the filename
-        document.addEventListener("DOMContentLoaded", function() {
-            const path = window.location.pathname.split("/").pop().replace(".html", "");
-            const formattedName = path.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
-            document.getElementById('featureName').innerText = formattedName + " is Coming Soon";
-            document.title = formattedName + " | Career AI";
+<script src="config.js"></script>
+<script src="sidebar.js"></script>
+<script>
+    const driveToken = localStorage.getItem('drive_token');
+    let profileData = null;
+    let finalDayString = "";
+
+    // 1. Initial Load: Get Profile from Google Drive
+    window.onload = async () => {
+        if (!driveToken) { window.location.href = "index.html"; return; }
+
+        // Set default date to today
+        document.getElementById('resign-date').valueAsDate = new Date();
+
+        try {
+            const res = await fetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder', {
+                headers: { Authorization: `Bearer ${driveToken}` }
+            });
+            const list = await res.json();
+            const file = list.files.find(f => f.name === 'proease_master_profile.json');
+
+            if (!file) {
+                document.getElementById('letter-preview').innerHTML = "No Profile Found. Please fill your Master Profile first.";
+                return;
+            }
+
+            const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, {
+                headers: { Authorization: `Bearer ${driveToken}` }
+            });
+            profileData = await fileRes.json();
+            
+            setupJobSelector();
+            calculateDate();
+        } catch (e) {
+            console.error(e);
+            document.getElementById('letter-preview').innerText = "Error loading profile data.";
+        }
+    };
+
+    // 2. Populate Dropdown with jobs from Profile
+    function setupJobSelector() {
+        const sel = document.getElementById('job-selector');
+        sel.innerHTML = "";
+        
+        if (!profileData.exp || profileData.exp.length === 0) {
+            sel.innerHTML = '<option>No work history found</option>';
+            return;
+        }
+
+        profileData.exp.forEach((job, index) => {
+            const opt = document.createElement('option');
+            opt.value = index;
+            opt.innerText = `${job.role} at ${job.comp}`;
+            sel.appendChild(opt);
         });
-    </script>
+        updatePreview();
+    }
+
+    // 3. Date Calculator
+    function calculateDate() {
+        const resignDateVal = document.getElementById('resign-date').value;
+        const noticeDays = parseInt(document.getElementById('notice-period').value);
+        
+        if (!resignDateVal) return;
+
+        const date = new Date(resignDateVal);
+        date.setDate(date.getDate() + noticeDays);
+
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        finalDayString = date.toLocaleDateString('en-US', options);
+        
+        document.getElementById('final-date-display').innerText = finalDayString;
+        updatePreview();
+    }
+
+    // 4. AI Professionalizer for the Reason
+    async function professionalizeReason() {
+        const raw = document.getElementById('raw-reason').value;
+        if (!raw) return alert("Please type a reason first.");
+
+        const loading = document.getElementById('ai-loading');
+        loading.style.display = "block";
+
+        try {
+            const res = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'aiAssist',
+                    type: 'professionalize',
+                    rawText: raw
+                })
+            });
+            const data = await res.json();
+            document.getElementById('raw-reason').value = data.answer;
+            updatePreview();
+        } catch (e) {
+            alert("AI service busy. Please try again.");
+        } finally {
+            loading.style.display = "none";
+        }
+    }
+
+    // 5. Generate Entire Letter with AI
+    async function generateFullLetter() {
+        const jobIndex = document.getElementById('job-selector').value;
+        const currentJob = profileData.exp[jobIndex];
+        const reason = document.getElementById('raw-reason').value;
+        const preview = document.getElementById('letter-preview');
+
+        preview.innerText = "\n\n\n\n       ProEase AI is crafting your formal resignation letter...";
+
+        try {
+            const res = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'aiAssist',
+                    type: 'resign_letter',
+                    role: currentJob.role,
+                    company: currentJob.comp,
+                    lastDay: finalDayString,
+                    reason: reason
+                })
+            });
+            const data = await res.json();
+            
+            // Format the final display
+            const header = getLetterHeader();
+            const footer = getLetterFooter();
+            preview.innerText = header + "\n" + data.answer + "\n" + footer;
+        } catch (e) {
+            updatePreview(); // Fallback to template
+            alert("Could not generate AI version. Using standard template.");
+        }
+    }
+
+    // 6. Template Helpers
+    function getLetterHeader() {
+        const p = profileData.personal;
+        const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const jobIndex = document.getElementById('job-selector').value;
+        const currentJob = profileData.exp[jobIndex];
+
+        return `${p.name}
+${p.loc || ''}
+${p.email} | ${p.phone}
+
+Date: ${today}
+
+To: Human Resources / Hiring Manager
+${currentJob.comp}
+
+RE: RESIGNATION - ${p.name}`;
+    }
+
+    function getLetterFooter() {
+        const p = profileData.personal;
+        return `
+Sincerely,
+
+(Signature)
+__________________________
+${p.name}`;
+    }
+
+    function updatePreview() {
+        if (!profileData) return;
+        const jobIndex = document.getElementById('job-selector').value;
+        const currentJob = profileData.exp[jobIndex];
+        const reason = document.getElementById('raw-reason').value || "[Enter reason or use AI Assist]";
+        
+        const header = getLetterHeader();
+        const body = `
+Dear Sir/Madam,
+
+Please accept this letter as formal notification that I am resigning from my position as ${currentJob.role} at ${currentJob.comp}. 
+
+As per my employment contract and notice period requirements, my final working day will be ${finalDayString}.
+
+I have decided to leave for the following reason: ${reason}
+
+I appreciate the opportunities for professional development that I have had at ${currentJob.comp} and I wish the company the very best for the future.
+
+Sincerely,
+
+${profileData.personal.sig ? 'Digital Signature Attached' : '(Signature)'}
+__________________________
+${profileData.personal.name}`;
+
+        document.getElementById('letter-preview').innerText = header + "\n" + body;
+    }
+</script>
 </body>
 </html>
