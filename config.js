@@ -1,2 +1,11 @@
-// config.js - THE ONLY PLACE TO UPDATE YOUR URL
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2c20JQhD5v-bHsdQassiK6pA3ekHuWyTY63WeiNeCYCL9I0ZizvDus8ouJtNRV6ie/exec";
+// config.js - THE MASTER CONTROL CENTER
+
+// 1. Your Google Apps Script URL
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwT6ULwITdv7RFAOkflgUYO_PRRGCR1uFhsyRc6wgw9WCkRv5rmm7YfXydQyZS7ZqtV/exec";
+
+// 2. Global App Settings
+const APP_CONFIG = {
+    name: "ProEase",
+    version: "V3.2",
+    releaseDate: "April 15, 2026"
+};
