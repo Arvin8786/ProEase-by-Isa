@@ -3,92 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feature Loading | Career AI</title>
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <!-- Shared Styles -->
+    <title>Feature Loading | ProEase V3.2</title>
+    
+    <!-- External Fonts & Global Styles -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    
     <style>
-        .dev-container {
+        /* Specific Styles for the Development Placeholder */
+        .dev-wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 70vh;
+            height: 80vh;
             text-align: center;
+            padding: 20px;
         }
-        .dev-icon {
+
+        .dev-icon-circle {
             font-size: 64px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             background: #e0e7ff;
-            width: 120px;
-            height: 120px;
+            width: 140px;
+            height: 140px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            color: var(--primary);
+            color: #6366f1;
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.2);
+            animation: pulse 2s infinite;
         }
-        .badge-soon {
+
+        .status-badge {
             background: #fef3c7;
             color: #92400e;
-            padding: 6px 16px;
-            border-radius: 20px;
+            padding: 8px 20px;
+            border-radius: 30px;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: 800;
             text-transform: uppercase;
-            margin-bottom: 15px;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            border: 1px solid #fde68a;
         }
-        h1 { font-size: 32px; margin: 10px 0; color: var(--sidebar); }
-        p { color: #64748b; max-width: 450px; line-height: 1.6; }
-        .back-btn {
-            margin-top: 30px;
+
+        h1 { 
+            font-size: 36px; 
+            font-weight: 800; 
+            margin: 10px 0; 
+            color: #0f172a; 
+            letter-spacing: -1px;
+        }
+
+        .dev-description { 
+            color: #64748b; 
+            max-width: 500px; 
+            line-height: 1.8; 
+            font-size: 16px;
+            margin-bottom: 40px;
+        }
+
+        .return-btn {
             background: white;
-            border: 1px solid #ddd;
-            padding: 12px 24px;
-            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            padding: 14px 30px;
+            border-radius: 12px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 700;
+            color: #1e293b;
+            text-decoration: none;
             transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
         }
-        .back-btn:hover { background: #f8f9fa; border-color: #bbb; }
+
+        .return-btn:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
 
+    <!-- The main content area where the feature will eventually live -->
     <div class="main">
-        <div class="dev-container">
-            <div class="badge-soon">In Development</div>
-            <div class="dev-icon">⚙️</div>
-            <h1 id="featureName">Building Feature...</h1>
-            <p>Our AI engineers are currently training the models for this module to ensure the highest quality results. This feature will be available in the next update.</p>
+        <div class="dev-wrapper">
+            <div class="status-badge">Module in Progress</div>
+            <div class="dev-icon-circle">⚙️</div>
             
-            <button class="back-btn" onclick="location.href='dashboard.html'">← Back to Overview</button>
+            <h1 id="featureHeading">Initializing Feature...</h1>
+            
+            <p class="dev-description">
+                Our AI engineering team is currently fine-tuning the models and data structures for this module. 
+                This advanced tool will be available in the next ProEase system update.
+            </p>
+            
+            <a href="dashboard.html" class="return-btn">
+                <span>←</span> Back to System Overview
+            </a>
         </div>
     </div>
 
-    <!-- Shared Sidebar Script -->
+    <!-- SCRIPT LOADING SEQUENCE (VERY IMPORTANT) -->
+
+    <!-- 1. Load Master Config first (Defines URL and App Info) -->
+    <script src="config.js"></script>
+
+    <!-- 2. Load Sidebar second (Uses variables from config.js) -->
     <script src="sidebar.js"></script>
     
+    <!-- 3. Page-Specific Logic -->
     <script>
-        // Simple script to show the current feature name based on the filename
         document.addEventListener("DOMContentLoaded", function() {
-            const path = window.location.pathname.split("/").pop().replace(".html", "");
-            const formattedName = path.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
-            document.getElementById('featureName').innerText = formattedName + " is Coming Soon";
-            document.title = formattedName + " | Career AI";
+            // Get current filename (e.g., ats-checker.html)
+            const path = window.location.pathname.split("/").pop();
+            const fileName = path.replace(".html", "");
+            
+            // Format name: 'ats-checker' becomes 'ATS Checker'
+            const formattedName = fileName
+                .split("-")
+                .map(word => {
+                    if (word.length <= 3) return word.toUpperCase(); // Handles ATS, AI, etc.
+                    return word.charAt(0).toUpperCase() + word.slice(1);
+                })
+                .join(" ");
+
+            // Update Page Content
+            document.getElementById('featureHeading').innerText = formattedName + " is Coming Soon";
+            
+            // Update Browser Tab Title
+            document.title = `${APP_CONFIG.name} | ${formattedName}`;
+
+            console.log("System Ready. Module: " + formattedName);
+            console.log("Global API URL: " + APPS_SCRIPT_URL);
         });
     </script>
 </body>
 </html>
-<!-- 1. Load config first (defines APPS_SCRIPT_URL and APP_CONFIG) -->
-    <script src="config.js"></script>
-
-    <!-- 2. Load sidebar second (uses those variables to draw the menu) -->
-    <script src="sidebar.js"></script>
-
-    <!-- 3. Your page-specific script goes LAST -->
-    <script>
-        // Now you can use APPS_SCRIPT_URL safely here
-        console.log("Connecting to: " + APPS_SCRIPT_URL);
-    </script>
