@@ -81,3 +81,14 @@
     </script>
 </body>
 </html>
+<!-- 1. Load config first (defines APPS_SCRIPT_URL and APP_CONFIG) -->
+    <script src="config.js"></script>
+
+    <!-- 2. Load sidebar second (uses those variables to draw the menu) -->
+    <script src="sidebar.js"></script>
+
+    <!-- 3. Your page-specific script goes LAST -->
+    <script>
+        // Now you can use APPS_SCRIPT_URL safely here
+        console.log("Connecting to: " + APPS_SCRIPT_URL);
+    </script>
