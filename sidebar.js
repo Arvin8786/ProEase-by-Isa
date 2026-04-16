@@ -1,117 +1,177 @@
-// sidebar.js
-
-// sidebar.js - GLOBAL CONFIGURATION
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2c20JQhD5v-bHsdQassiK6pA3ekHuWyTY63WeiNeCYCL9I0ZizvDus8ouJtNRV6ie/exec";
-
-const APP_CONFIG = {
-    name: "ProEase",
-    version: "V3.2",
-    releaseDate: "April 15, 2026" 
-};
-// ... (rest of the sidebar code remains the same)
-const APP_CONFIG = {
-    name: "ProEase",
-    version: "V3.2",
-    releaseDate: "April 15, 2026" 
-};
+/**
+ * ProEase V3.2 - Robust Sidebar Engine
+ * Features: Auto-scroll, Sticky Footer, Active State Tracking, Role-based Access, 
+ * User Status Preview, and Internal Styling.
+ */
 
 document.addEventListener("DOMContentLoaded", function() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user) { window.location.href = "index.html"; return; }
+    // 1. SESSION & SECURITY CHECK
+    const userJson = localStorage.getItem('user');
+    if (!userJson) {
+        window.location.href = "index.html";
+        return;
+    }
+    const user = JSON.parse(userJson);
 
-    const sidebarHTML = `
-        <div class="sidebar" style="display: flex; flex-direction: column; height: 100vh; position: fixed; top: 0; left: 0; width: 260px; background: #0f172a; box-sizing: border-box;">
+    // 2. INTERNAL SIDEBAR STYLING (Ensures menu looks perfect on every page)
+    const sidebarStyles = `
+        <style>
+            .sidebar {
+                width: 260px;
+                background: #0f172a;
+                height: 100vh;
+                color: white;
+                position: fixed;
+                top: 0;
+                left: 0;
+                display: flex;
+                flex-direction: column;
+                box-sizing: border-box;
+                z-index: 10000;
+                box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            }
+            .brand-area {
+                padding: 30px 20px;
+                border-bottom: 1px solid #1e293b;
+            }
+            .logo {
+                font-size: 22px;
+                font-weight: 800;
+                color: white;
+                text-decoration: none;
+                letter-spacing: -1px;
+            }
+            .logo span { color: #6366f1; font-size: 14px; font-weight: 400; margin-left: 5px; }
+            .release-info { font-size: 10px; color: #64748b; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px; }
+
+            .menu-area {
+                flex: 1;
+                overflow-y: auto;
+                padding: 20px 15px;
+            }
+            .menu-area::-webkit-scrollbar { width: 4px; }
+            .menu-area::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+            .nav-label {
+                font-size: 10px;
+                text-transform: uppercase;
+                color: #475569;
+                letter-spacing: 1.5px;
+                font-weight: 800;
+                margin: 25px 10px 10px 10px;
+                display: block;
+                cursor: pointer;
+            }
+            .nav-item {
+                padding: 12px 16px;
+                color: #94a3b8;
+                text-decoration: none;
+                border-radius: 10px;
+                font-weight: 500;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                margin-bottom: 4px;
+                transition: all 0.2s ease;
+            }
+            .nav-item:hover { background: #1e293b; color: white; transform: translateX(5px); }
+            .nav-item.active { background: #6366f1; color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+
+            .dropdown-content { padding-left: 15px; margin-top: 5px; border-left: 1px solid #1e293b; margin-left: 10px; }
             
-            <!-- 1. FIXED HEADER (Logo & Version) -->
-            <div class="brand-area" style="padding: 25px 20px 15px 20px; border-bottom: 1px solid #1e293b;">
-                <a href="dashboard.html" class="logo" style="color: white; text-decoration: none; font-size: 22px; font-weight: 800;">${APP_CONFIG.name}<span style="color: #6366f1; font-size: 14px; font-weight: 400; margin-left: 5px;">${APP_CONFIG.version}</span></a>
-                <div class="release-info" style="font-size: 11px; color: #64748b; margin-top: 5px;">Released: ${APP_CONFIG.releaseDate}</div>
+            .sidebar-footer {
+                padding: 20px;
+                border-top: 1px solid #1e293b;
+                background: #0f172a;
+            }
+            .user-mini-profile {
+                background: #1e293b;
+                padding: 12px;
+                border-radius: 12px;
+                margin-bottom: 15px;
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+            .u-id { font-size: 12px; font-weight: 800; color: white; }
+            .u-tier { font-size: 10px; color: #6366f1; text-transform: uppercase; font-weight: 800; }
+
+            .logout-btn {
+                width: 100%;
+                background: #ef4444;
+                color: white;
+                border: none;
+                padding: 12px;
+                border-radius: 10px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            .logout-btn:hover { background: #dc2626; }
+            
+            details summary { list-style: none; outline: none; }
+            details summary::-webkit-details-marker { display: none; }
+        </style>
+    `;
+
+    // 3. GENERATE SIDEBAR HTML
+    const sidebarHTML = `
+        <div class="sidebar">
+            <div class="brand-area">
+                <a href="dashboard.html" class="logo">${APP_CONFIG.name}<span> ${APP_CONFIG.version}</span></a>
+                <div class="release-info">Build: ${APP_CONFIG.releaseDate}</div>
             </div>
             
-            <!-- 2. SCROLLABLE MENU AREA -->
-            <div class="menu-area" style="flex: 1; overflow-y: auto; padding: 15px 15px;">
-                
-                <a href="dashboard.html" class="nav-item" id="nav-dashboard">📊 Overview Dashboard</a>
-                <a href="profile-parser.html" class="nav-item" id="nav-profile">👤 AI Profile Sync</a>
+            <div class="menu-area">
+                <a href="dashboard.html" class="nav-item" id="nav-dashboard">📊 Dashboard Overview</a>
+                <a href="profile-parser.html" class="nav-item" id="nav-profile">👤 Master Career Profile</a>
 
-                <!-- CATEGORY: DOCUMENT TOOLS -->
                 <details class="nav-dropdown" open>
                     <summary class="nav-label">📄 Document Creation</summary>
                     <div class="dropdown-content">
-                        <a href="resume-builder.html" class="nav-item" id="nav-resume">Resume Builder</a>
-                        <a href="cover-letter.html" class="nav-item" id="nav-cover">Cover Letter Gen</a>
-                        <a href="resignation-gen.html" class="nav-item" id="nav-resign">Resignation Letter</a>
+                        <a href="resume-builder.html" class="nav-item" id="nav-resume">AI Resume Builder</a>
+                        <a href="cover-letter.html" class="nav-item" id="nav-cover">AI Cover Letter Gen</a>
+                        <a href="resignation-gen.html" class="nav-item" id="nav-resign">Resignation Generator</a>
                         <a href="form-filler.html" class="nav-item" id="nav-form">AI Form Filler</a>
                     </div>
                 </details>
 
-                <!-- CATEGORY: INTERVIEW PREP -->
                 <details class="nav-dropdown" open>
-                    <summary class="nav-label">🎯 Interview Prep</summary>
+                    <summary class="nav-label">🎯 Interview & Performance</summary>
                     <div class="dropdown-content">
                         <a href="mock-interview.html" class="nav-item" id="nav-interview">AI Mock Interview</a>
-                        <a href="resume-tailor.html" class="nav-item" id="nav-tailor">Resume Tailoring</a>
-                    </div>
-                </details>
-
-                <!-- CATEGORY: ANALYTICS -->
-                <details class="nav-dropdown" open>
-                    <summary class="nav-label">📈 Career Analytics</summary>
-                    <div class="dropdown-content">
-                        <a href="ats-checker.html" class="nav-item" id="nav-ats">ATS Checker</a>
+                        <a href="ats-checker.html" class="nav-item" id="nav-ats">ATS Score Checker</a>
                         <a href="linkedin-auditor.html" class="nav-item" id="nav-linkedin">LinkedIn Auditor</a>
-                        <a href="job-tracker.html" class="nav-item" id="nav-tracker">Job Tracker</a>
+                        <a href="job-tracker.html" class="nav-item" id="nav-tracker">Job Application Board</a>
                     </div>
                 </details>
 
-                <!-- CATEGORY: ADMIN -->
                 <div id="adminArea" style="${user.role === 'Admin' ? 'display:block' : 'display:none'}">
                     <details class="nav-dropdown">
-                        <summary class="nav-label" style="color: #f87171;">🛡️ System Admin</summary>
+                        <summary class="nav-label" style="color: #f87171;">🛡️ System Administration</summary>
                         <div class="dropdown-content">
-                            <a href="admin.html" class="nav-item" style="color: #f87171;">Manage Users</a>
+                            <a href="admin.html" class="nav-item" style="color: #f87171;">User & Limit Management</a>
                         </div>
                     </details>
                 </div>
-
             </div>
 
-            <!-- 3. FIXED FOOTER (Logout Button) -->
-            <div style="padding: 15px 20px; border-top: 1px solid #1e293b; background: #0f172a;">
-                <button onclick="logout()" class="logout-btn" style="width: 100%; background: #ef4444; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.2s;">Logout Session</button>
+            <div class="sidebar-footer">
+                <div class="user-mini-profile">
+                    <span class="u-id">ID: ${user.userId}</span>
+                    <span class="u-tier">Plan: ${user.status}</span>
+                </div>
+                <button onclick="logout()" class="logout-btn">Logout Session</button>
             </div>
         </div>
-
-        <!-- Inline CSS for elements inside JS -->
-        <style>
-            .menu-area::-webkit-scrollbar { width: 5px; }
-            .menu-area::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-            
-            .nav-item {
-                display: block; padding: 10px 15px; color: #94a3b8; text-decoration: none;
-                border-radius: 8px; font-size: 14px; font-weight: 500; margin-bottom: 4px; transition: all 0.2s;
-            }
-            .nav-item:hover, .nav-item.active { background: #1e293b; color: white; }
-            
-            .nav-label {
-                font-size: 11px; text-transform: uppercase; color: #475569; letter-spacing: 1px;
-                font-weight: 700; cursor: pointer; display: block; padding: 15px 10px 5px 10px;
-            }
-            .nav-dropdown[open] .nav-label { color: #6366f1; }
-            
-            .dropdown-content { padding-left: 10px; margin-top: 5px; }
-            .logout-btn:hover { background: #dc2626 !important; }
-        </style>
     `;
 
+    // 4. INJECT INTO DOM
+    document.head.insertAdjacentHTML('beforeend', sidebarStyles);
     document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
 
-    // Update Browser Tab Title automatically
-    const path = window.location.pathname.split("/").pop().replace(".html", "");
-    const pageTitle = path ? path.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") : "Dashboard";
-    document.title = `${APP_CONFIG.name} ${APP_CONFIG.version} | ${pageTitle}`;
-
-    // Highlight active link
+    // 5. AUTO-HIGHLIGHT ACTIVE TAB
+    const path = window.location.pathname.split("/").pop();
     const activeMap = {
         "dashboard.html": "nav-dashboard",
         "profile-parser.html": "nav-profile",
@@ -122,24 +182,16 @@ document.addEventListener("DOMContentLoaded", function() {
         "mock-interview.html": "nav-interview",
         "ats-checker.html": "nav-ats",
         "linkedin-auditor.html": "nav-linkedin",
-        "job-tracker.html": "nav-tracker",
-        "resume-tailor.html": "nav-tailor"
+        "job-tracker.html": "nav-tracker"
     };
-    const currentPath = window.location.pathname.split("/").pop();
-    if(activeMap[currentPath]) document.getElementById(activeMap[currentPath]).classList.add("active");
+    
+    if (activeMap[path]) {
+        const activeElement = document.getElementById(activeMap[path]);
+        if (activeElement) activeElement.classList.add("active");
+    }
 });
 
 function logout() {
-    localStorage.removeItem('user');
+    localStorage.clear();
     window.location.href = "index.html";
 }
-<!-- At the bottom of resume-builder.html -->
-<script src="config.js"></script>
-<script src="sidebar.js"></script>
-<script>
-   // Now you can just use the variable APPS_SCRIPT_URL 
-   // and it will automatically be the right one!
-   async function generate() {
-       fetch(APPS_SCRIPT_URL, { ... });
-   }
-</script>
